@@ -4,6 +4,24 @@ All notable changes to the Redmine Checklist plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.2.0] — 2026-06-28
+
+**Phase 2 — history, done-ratio, activity & search.**
+
+### Added
+- **Change history**: checklist changes (item done/reopened, added/removed) are recorded into the issue journal and rendered in the issue **History** tab. Gated by the `save_log` setting.
+- **Consolidation**: rapid successive changes by the same user within a 1-minute window are merged into a single journal entry; a net round-trip (check then uncheck) leaves no noise.
+- **Done-ratio integration**: when Redmine's done-ratio mode is *issue field* and the `affect_done_ratio` setting is on, the issue's % done is driven by checklist completion (tasks only; rounded to 10%). Applied without creating spurious journals.
+- **Activity feed**: checklist items appear in the global Activity page under a "Checklists" type (opt-in).
+- **Global search**: checklist item subjects are searchable (respecting `view_checklists`).
+- Settings form now includes `save_log`, with hidden fields so unchecking persists correctly.
+
+### Fixed
+- Global search returned **HTTP 500** (`PG::AmbiguousColumn` on `created_on`) because `acts_as_searchable` defaulted to an unqualified date column while our table uses `created_at`; now qualified via `date_column`.
+
+### Tested
+- 46 Playwright e2e tests (35 Phase 1 + 11 Phase 2), deterministic across runs; search/activity assertions hardened to check HTTP 200 and matches within the results region.
+
 ## [0.1.0] — 2026-06-28
 
 First public release — **Phase 1 MVP: interactive issue checklists**.
@@ -29,4 +47,5 @@ First public release — **Phase 1 MVP: interactive issue checklists**.
 ### Notes
 - Built for Redmine 6.x; requires Redmine 5.0+. No proprietary gem dependencies.
 
+[0.2.0]: https://github.com/ibaou-dev/redmine-checklist-plugin/releases/tag/v0.2.0
 [0.1.0]: https://github.com/ibaou-dev/redmine-checklist-plugin/releases/tag/v0.1.0

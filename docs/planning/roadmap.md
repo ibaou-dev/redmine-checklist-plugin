@@ -42,14 +42,15 @@ Goal: a fully usable single-issue checklist.
 
 **Exit:** a member can add, edit, check, reorder, and delete items; a viewer sees read-only; progress updates live. ✔ Verified e2e (two deterministic runs + visual review) and shipped as **v0.1.0**.
 
-## Phase 2 — History & done-ratio
+## Phase 2 — History & done-ratio ✅ (done — v0.2.0)
 
-- Write checklist changes into the issue journal (diff-based), visible in History and Activity.
-- Consolidate rapid edits (same user, 1-minute window) into one journal entry.
-- Optional contribution to issue `done_ratio` when Redmine is in "issue field" done-ratio mode and `affect_done_ratio` is on.
-- `acts_as_activity_provider` + `acts_as_searchable` integration.
+- ✅ Write checklist changes into the issue journal (diff-based), visible in the History tab and the Activity feed.
+- ✅ Consolidate rapid edits (same user, 1-minute window) into one journal entry; net round-trips leave no noise.
+- ✅ Optional contribution to issue `done_ratio` when Redmine is in "issue field" done-ratio mode and `affect_done_ratio` is on (tasks only, rounded to 10%, no spurious journals).
+- ✅ `acts_as_activity_provider` + `acts_as_searchable` integration (search respects `view_checklists`).
+- ✅ Fixed a global-search 500 (`acts_as_searchable` unqualified `created_on` vs our `created_at`).
 
-**Exit:** checking items shows up in issue history and activity; done ratio reflects checklist completion when enabled.
+**Exit:** checking items shows up in issue history and activity; done ratio reflects checklist completion when enabled. ✔ Verified e2e (46 tests, two deterministic runs) + independent behavioral checks (journal/consolidation/done-ratio/search/activity). Shipped as **v0.2.0**.
 
 ## Phase 3 — Templates
 

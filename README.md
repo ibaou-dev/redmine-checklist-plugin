@@ -12,7 +12,7 @@ Real tasks contain small steps too lightweight for their own issue. This plugin 
 
 ## Features
 
-**Shipped in v0.1.0:**
+**Shipped:**
 
 - ✅ Add items and section headers (two buttons; Enter adds an item) — AJAX, no reload
 - ✅ Inline edit of titles (Enter saves, Esc cancels)
@@ -21,10 +21,12 @@ Real tasks contain small steps too lightweight for their own issue. This plugin 
 - ✅ Flat group-header sections with items visually grouped beneath them
 - ✅ Three-tier role permissions (view / done / manage), enforced in UI and on the server
 - ✅ REST API; plugin settings (progress bar, done ratio, change log)
+- ✅ Change history in the issue **History** tab (with consolidation) — *v0.2.0*
+- ✅ Done-ratio driven by checklist completion (issue-field mode) — *v0.2.0*
+- ✅ Activity feed + global search integration — *v0.2.0*
 
 **Planned (see [roadmap](docs/planning/roadmap.md)):**
 
-- ⏳ Change logging into issue journals; done-ratio integration (Phase 2)
 - ⏳ Templates — project/global, tracker auto-apply (Phase 3)
 - ⏳ Mandatory items that block status transitions; per-item assignee/due date (Phase 4)
 - ⏳ Issue-list completion filter, full i18n, v1.0 polish (Phase 5)

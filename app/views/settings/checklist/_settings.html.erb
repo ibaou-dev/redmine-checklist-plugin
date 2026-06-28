@@ -1,12 +1,21 @@
 <p>
+  <%= hidden_field_tag 'settings[show_progress_bar]', '0', id: nil %>
   <%= check_box_tag 'settings[show_progress_bar]', '1',
                     ['true', '1', true].include?(settings['show_progress_bar']),
                     id: 'settings_show_progress_bar' %>
   <label for="settings_show_progress_bar"><%= l(:setting_show_progress_bar) %></label>
 </p>
 <p>
+  <%= hidden_field_tag 'settings[affect_done_ratio]', '0', id: nil %>
   <%= check_box_tag 'settings[affect_done_ratio]', '1',
                     ['true', '1', true].include?(settings['affect_done_ratio']),
                     id: 'settings_affect_done_ratio' %>
   <label for="settings_affect_done_ratio"><%= l(:setting_affect_done_ratio) %></label>
+</p>
+<p>
+  <%= hidden_field_tag 'settings[save_log]', '0', id: nil %>
+  <%= check_box_tag 'settings[save_log]', '1',
+                    settings['save_log'].to_s != '0',
+                    id: 'settings_save_log' %>
+  <label for="settings_save_log"><%= l(:setting_save_log) %></label>
 </p>
