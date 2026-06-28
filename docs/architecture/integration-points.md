@@ -48,8 +48,10 @@ Registered under the `:issue_tracking` project module in `init.rb`:
 | Permission | Grants | Maps to |
 |---|---|---|
 | `view_checklists` | see items | `checklist_items#index` |
-| `done_checklists` | toggle done | `checklist_items#update` (done only) |
+| `done_checklists` | toggle done | `checklist_items#done` (dedicated action — toggles `is_done` only) |
 | `manage_checklists` | full CRUD + reorder | create/update/destroy/reorder (`require: :member`) |
+
+> The done toggle is a **dedicated `done` member action**, separate from `update`, so a user with only `done_checklists` can check/uncheck but cannot edit subjects, add, delete, or reorder.
 
 ## Routes
 
@@ -58,6 +60,7 @@ Nested under issues (`config/routes.rb`):
 ```
 resources :issues do
   resources :checklist_items, only: [:index, :create, :update, :destroy] do
+    member     { patch :done }
     collection { post :reorder }
   end
 end
@@ -81,8 +84,12 @@ Plugin settings (`Setting.plugin_redmine_checklist`), partial at `app/views/sett
 ## Assets
 
 - CSS `assets/stylesheets/redmine_checklist.css` — uses CSS custom properties (`var(--color-primary)`, `var(--border-color)`, …) so it inherits Prism theme tokens and degrades on the default theme.
-- JS `assets/javascripts/redmine_checklist.js` — progressive enhancement (AJAX done-toggle, multiline paste). Served via Propshaft (Redmine 6.x); no build step.
+- JS `assets/javascripts/redmine_checklist.js` — progressive enhancement (two-button add, inline edit, AJAX done-toggle, jQuery-UI reorder). Served via Propshaft (Redmine 6.x) at digested `/assets/plugin_assets/redmine_checklist/...` URLs; no build step.
+
+## Hook render context (gotcha)
+
+A partial rendered via a view hook runs in the **core controller's** view context (Issues), which does **not** include the plugin's helper module — calling a plugin helper there raises `NoMethodError`. Therefore progress is computed by a **model method** (`Issue#checklist_progress_stats`), which is available in any view; the `ChecklistItemsHelper#checklist_progress` delegates to it for non-hook callers. Prefer model methods (or passed locals) over plugin helpers for anything a hook-rendered partial needs.
 
 ## Load-time safety
 
-Per the `redmine-plugin-developer` skill: never call `l()`/`I18n` or hit the DB at class-body/module load time — it crashes eager-load in production. The CI eager-load check (`rails runner "Rails.application.eager_load!"`) guards this; it currently passes.
+Per the `redmine-plugin-developer` skill: never call `l()`/`I18n` or hit the DB at class-body/module load time — it crashes eager-load in production. The CI eager-load check (`rails runner "Rails.application.eager_load!"`) guards this; it passes. Hooks live in `lib/` (Zeitwerk-ignored) and register once at boot; the `Issue` patch is re-applied in `to_prepare` to survive development-mode reloads.

@@ -26,19 +26,21 @@ Each phase is independently shippable and ends with a working, tested increment 
 
 **Exit:** plugin loads in the container, tables exist, issue page renders the (empty) checklist panel. ✔
 
-## Phase 1 — MVP: interactive items
+## Phase 1 — MVP: interactive items ✅ (done — v0.1.0)
 
 Goal: a fully usable single-issue checklist.
 
-- CRUD for items via AJAX (`format.js`), no page reload.
-- Checkbox done-toggle with optimistic UI.
-- Drag-and-drop reorder (persist `position`).
-- Section headers (`is_section`) rendered distinctly, excluded from progress.
-- Progress bar + "x/y done" badge; respect `show_progress_bar` setting.
-- Three-tier permissions enforced in controller + views.
-- Unit + functional tests; eager-load CI check.
+- ✅ Add items and section headers via two explicit buttons (Enter = add item); AJAX, no reload.
+- ✅ Inline edit of item/section titles (pencil; Enter saves, Esc cancels).
+- ✅ Checkbox done-toggle (dedicated `done` action) with live progress.
+- ✅ Drag-and-drop reorder (jQuery UI sortable; persists `position`).
+- ✅ Section headers (`is_section`) as flat group headers; items visually indented under them; sections excluded from progress.
+- ✅ Progress bar + "x/y done" badge; respects `show_progress_bar` setting.
+- ✅ Three-tier permissions (view / done / manage) enforced in views and on the server (403 on direct calls).
+- ✅ Delete with `aria-label` (no lingering tooltip).
+- ✅ Unit + functional tests; eager-load CI check; **35 Playwright e2e tests** (real Chrome, all tiers, every interaction).
 
-**Exit:** a member can add, check, reorder, and delete items; a viewer sees read-only; progress updates live.
+**Exit:** a member can add, edit, check, reorder, and delete items; a viewer sees read-only; progress updates live. ✔ Verified e2e (two deterministic runs + visual review) and shipped as **v0.1.0**.
 
 ## Phase 2 — History & done-ratio
 
