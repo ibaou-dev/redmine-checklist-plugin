@@ -1,6 +1,9 @@
 # Local references (cloned source repos, not part of this plugin)
 .references/
 
+# Claude Code workspace wiring (skills symlinked from the devcontainer; local-only)
+.claude/
+
 # Ruby
 *.gem
 *.rbc
