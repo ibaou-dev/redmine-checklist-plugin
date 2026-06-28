@@ -1,0 +1,29 @@
+<%# Renders a single checklist item row %>
+<li class="checklist-item <%= item.done? ? 'is-done' : '' %>"
+    id="checklist-item-<%= item.id %>"
+    data-id="<%= item.id %>">
+
+  <span class="checklist-handle" title="Drag to reorder">&#8942;</span>
+
+  <%= check_box_tag "checklist_item[is_done]",
+                    "1",
+                    item.done?,
+                    class: 'checklist-checkbox',
+                    data: {
+                      url:    issue_checklist_item_path(@issue, item),
+                      method: :patch
+                    } %>
+
+  <span class="checklist-item-text"><%= item.subject %></span>
+
+  <% if User.current.allowed_to?(:manage_checklists, @project) %>
+    <span class="checklist-item-actions">
+      <%= link_to '✕',
+                  issue_checklist_item_path(@issue, item),
+                  method: :delete,
+                  remote: true,
+                  class: 'checklist-delete',
+                  title: l(:button_delete) %>
+    </span>
+  <% end %>
+</li>

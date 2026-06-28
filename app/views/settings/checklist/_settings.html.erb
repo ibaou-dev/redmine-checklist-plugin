@@ -1,0 +1,10 @@
+<%= labelled_fields_for :settings, @settings do |f| %>
+  <p>
+    <%= f.check_box :show_progress_bar %>
+    <label for="settings_show_progress_bar"><%= l(:setting_show_progress_bar) %></label>
+  </p>
+  <p>
+    <%= f.check_box :affect_done_ratio %>
+    <label for="settings_affect_done_ratio"><%= l(:setting_affect_done_ratio) %></label>
+  </p>
+<% end %>

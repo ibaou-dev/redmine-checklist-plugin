@@ -1,0 +1,37 @@
+<%# Hook partial: rendered below issue details %>
+<div id="checklist-panel" class="checklist-panel"
+     data-issue-id="<%= @issue.id %>"
+     data-can-manage="<%= User.current.allowed_to?(:manage_checklists, @project) %>">
+
+  <h3 class="checklist-title">
+    <%= l(:label_checklist) %>
+    <% if (prog = checklist_progress(@issue)) %>
+      <span class="checklist-badge"><%= l(:label_checklist_done, done: prog[:done], total: prog[:total]) %></span>
+    <% end %>
+  </h3>
+
+  <% if Setting.plugin_redmine_checklist['show_progress_bar'] == 'true' && (prog = checklist_progress(@issue)) %>
+    <div class="checklist-progress-bar" title="<%= prog[:percent] %>%">
+      <div class="checklist-progress-fill" style="width:<%= prog[:percent] %>%"></div>
+    </div>
+  <% end %>
+
+  <ul id="checklist-items" class="checklist-items">
+    <% @issue.checklist_items.ordered.each do |item| %>
+      <%= render 'checklists/checklist_item', item: item %>
+    <% end %>
+  </ul>
+
+  <% if User.current.allowed_to?(:manage_checklists, @project) %>
+    <div class="checklist-add-form">
+      <%= form_with url: issue_checklist_items_path(@issue), local: false,
+                    id: 'checklist-add-form', class: 'checklist-add-form' do |f| %>
+        <%= f.text_field :subject, placeholder: l(:label_checklist_add_item),
+                         class: 'checklist-new-item-input',
+                         autocomplete: 'off',
+                         name: 'checklist_item[subject]' %>
+        <%= f.submit '+', class: 'checklist-add-btn' %>
+      <% end %>
+    </div>
+  <% end %>
+</div>

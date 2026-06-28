@@ -1,0 +1,109 @@
+/* Redmine Checklist plugin styles */
+.checklist-panel {
+  margin: 1em 0;
+  padding: 0.5em 0;
+  border-top: 1px solid var(--border-color, #ddd);
+}
+
+.checklist-title {
+  font-size: 1em;
+  font-weight: bold;
+  margin-bottom: 0.5em;
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
+
+.checklist-badge {
+  font-size: 0.8em;
+  font-weight: normal;
+  color: var(--secondary-text-color, #666);
+}
+
+/* Progress bar */
+.checklist-progress-bar {
+  height: 6px;
+  background: var(--border-color, #ddd);
+  border-radius: 3px;
+  margin-bottom: 0.75em;
+  overflow: hidden;
+}
+
+.checklist-progress-fill {
+  height: 100%;
+  background: var(--success-color, #5cb85c);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+/* Item list */
+.checklist-items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.checklist-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.3em 0.25em;
+  border-radius: 3px;
+}
+
+.checklist-item:hover {
+  background: var(--hover-bg, rgba(0,0,0,0.04));
+}
+
+.checklist-item.is-done .checklist-item-text {
+  text-decoration: line-through;
+  color: var(--secondary-text-color, #888);
+}
+
+.checklist-handle {
+  cursor: grab;
+  color: var(--border-color, #ccc);
+  user-select: none;
+}
+
+.checklist-checkbox {
+  flex-shrink: 0;
+}
+
+.checklist-item-text {
+  flex: 1;
+}
+
+.checklist-item-actions {
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.checklist-item:hover .checklist-item-actions {
+  opacity: 1;
+}
+
+.checklist-delete {
+  color: var(--danger-color, #c0392b);
+  text-decoration: none;
+  font-size: 0.85em;
+  padding: 0 0.25em;
+}
+
+/* Add form */
+.checklist-add-form {
+  display: flex;
+  gap: 0.4em;
+  margin-top: 0.5em;
+}
+
+.checklist-new-item-input {
+  flex: 1;
+  padding: 0.3em 0.5em;
+  font-size: 0.9em;
+}
+
+.checklist-add-btn {
+  padding: 0.3em 0.75em;
+  font-size: 0.9em;
+}
