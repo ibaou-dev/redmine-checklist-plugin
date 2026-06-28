@@ -1,0 +1,16 @@
+<%# Shared partial: renders the x/y badge and optional progress bar inside a
+    stable wrapper div. The wrapper id lets .js.erb replace it after any change.
+    Locals: issue (required). Used by _issue_checklist.html.erb and .js.erb responses. %>
+<% prog = issue.checklist_progress_stats %>
+<div id="checklist-progress-<%= issue.id %>" class="checklist-progress-wrap">
+  <% if prog %>
+    <span class="checklist-badge">
+      <%= l(:label_checklist_done, done: prog[:done], total: prog[:total]) %>
+    </span>
+    <% if ['true', '1', true].include?(Setting.plugin_redmine_checklist['show_progress_bar']) %>
+      <div class="checklist-progress-bar" title="<%= prog[:percent] %>%">
+        <div class="checklist-progress-fill" style="width:<%= prog[:percent] %>%"></div>
+      </div>
+    <% end %>
+  <% end %>
+</div>

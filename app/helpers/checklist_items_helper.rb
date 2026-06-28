@@ -1,12 +1,8 @@
 module ChecklistItemsHelper
+  # Returns progress hash {done:, total:, percent:} counting tasks only
+  # (sections excluded). Delegates to the model so the same logic is available
+  # both in helper-aware views and in the issue-show hook context.
   def checklist_progress(issue)
-    items = issue.checklist_items
-    return nil if items.empty?
-
-    done  = items.done.count
-    total = items.count
-    pct   = (done.to_f / total * 100).round
-
-    { done: done, total: total, percent: pct }
+    issue.checklist_progress_stats
   end
 end

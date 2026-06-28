@@ -1,0 +1,53 @@
+# Fixtures for checklist_items tests.
+# issue_id=1 belongs to project ecookbook (id=1) in Redmine fixtures.
+# Users: admin=1, jsmith=2, dlopper=3.
+
+task_one:
+  id: 1
+  issue_id: 1
+  subject: "Write unit tests"
+  is_done: false
+  is_section: false
+  is_mandatory: false
+  position: 0
+  author_id: 2
+  created_at: "2026-01-01 10:00:00"
+  updated_at: "2026-01-01 10:00:00"
+
+task_done:
+  id: 2
+  issue_id: 1
+  subject: "Write integration tests"
+  is_done: true
+  is_section: false
+  is_mandatory: false
+  position: 1
+  author_id: 2
+  completed_by_id: 2
+  completed_at: "2026-01-02 09:00:00"
+  created_at: "2026-01-01 10:00:00"
+  updated_at: "2026-01-02 09:00:00"
+
+section_one:
+  id: 3
+  issue_id: 1
+  subject: "Phase 1"
+  is_done: false
+  is_section: true
+  is_mandatory: false
+  position: 2
+  author_id: 2
+  created_at: "2026-01-01 10:00:00"
+  updated_at: "2026-01-01 10:00:00"
+
+task_two:
+  id: 4
+  issue_id: 1
+  subject: "Deploy to staging"
+  is_done: false
+  is_section: false
+  is_mandatory: false
+  position: 3
+  author_id: 2
+  created_at: "2026-01-01 10:00:00"
+  updated_at: "2026-01-01 10:00:00"

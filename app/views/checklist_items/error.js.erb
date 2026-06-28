@@ -1,0 +1,28 @@
+// error.js.erb — show inline validation message without losing typed input
+(function() {
+  var msg   = <%= raw @checklist_item.errors.full_messages.first.to_json %>;
+  var panel = document.getElementById('checklist-panel');
+  var existing = panel ? panel.querySelector('.checklist-inline-error') : null;
+
+  if (existing) { existing.remove(); }
+
+  if (msg && panel) {
+    var err = document.createElement('p');
+    err.className = 'checklist-inline-error errorExplanation';
+    err.textContent = msg;
+    var form = document.getElementById('checklist-add-form');
+    // form may be nested inside a wrapper div; find its closest ancestor
+    // that is a direct child of panel so insertBefore works correctly.
+    var anchor = form;
+    while (anchor && anchor.parentNode !== panel) {
+      anchor = anchor.parentNode;
+    }
+    if (anchor) {
+      panel.insertBefore(err, anchor);
+    } else {
+      panel.appendChild(err);
+    }
+    // Auto-dismiss after 5s
+    setTimeout(function() { if (err.parentNode) err.remove(); }, 5000);
+  }
+})();

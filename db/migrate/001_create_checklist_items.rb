@@ -1,4 +1,4 @@
-class CreateChecklistItems < ActiveRecord::Migration[7.0]
+class CreateChecklistItems < ActiveRecord::Migration[7.2]
   def change
     create_table :checklist_items do |t|
       t.references :issue,       null: false, index: true

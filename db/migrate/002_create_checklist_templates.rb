@@ -1,4 +1,4 @@
-class CreateChecklistTemplates < ActiveRecord::Migration[7.0]
+class CreateChecklistTemplates < ActiveRecord::Migration[7.2]
   def change
     create_table :checklist_template_categories do |t|
       t.string  :name,     null: false, limit: 255

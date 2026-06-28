@@ -1,37 +1,53 @@
-<%# Hook partial: rendered below issue details %>
+<%# Hook partial: rendered below issue details via view_issues_show_details_bottom.
+    Partials stay in app/views/checklists/ (display namespace); .js.erb lives in
+    app/views/checklist_items/ (controller namespace). %>
+<% can_view   = User.current.allowed_to?(:view_checklists,   @project) ||
+                User.current.allowed_to?(:done_checklists,   @project) ||
+                User.current.allowed_to?(:manage_checklists, @project) %>
+<% can_done   = User.current.allowed_to?(:done_checklists,   @project) ||
+                User.current.allowed_to?(:manage_checklists, @project) %>
+<% can_manage = User.current.allowed_to?(:manage_checklists, @project) %>
+
+<% if can_view %>
 <div id="checklist-panel" class="checklist-panel"
      data-issue-id="<%= @issue.id %>"
-     data-can-manage="<%= User.current.allowed_to?(:manage_checklists, @project) %>">
+     data-can-manage="<%= can_manage %>"
+     data-can-done="<%= can_done %>"
+     data-reorder-url="<%= reorder_issue_checklist_items_path(@issue) %>">
 
   <h3 class="checklist-title">
     <%= l(:label_checklist) %>
-    <% if (prog = checklist_progress(@issue)) %>
-      <span class="checklist-badge"><%= l(:label_checklist_done, done: prog[:done], total: prog[:total]) %></span>
-    <% end %>
   </h3>
 
-  <% if Setting.plugin_redmine_checklist['show_progress_bar'] == 'true' && (prog = checklist_progress(@issue)) %>
-    <div class="checklist-progress-bar" title="<%= prog[:percent] %>%">
-      <div class="checklist-progress-fill" style="width:<%= prog[:percent] %>%"></div>
-    </div>
-  <% end %>
+  <%= render 'checklists/checklist_progress', issue: @issue %>
 
   <ul id="checklist-items" class="checklist-items">
     <% @issue.checklist_items.ordered.each do |item| %>
-      <%= render 'checklists/checklist_item', item: item %>
+      <%= render 'checklists/checklist_item',
+                 item: item, can_done: can_done, can_manage: can_manage %>
     <% end %>
   </ul>
 
-  <% if User.current.allowed_to?(:manage_checklists, @project) %>
+  <% if can_manage %>
     <div class="checklist-add-form">
-      <%= form_with url: issue_checklist_items_path(@issue), local: false,
-                    id: 'checklist-add-form', class: 'checklist-add-form' do |f| %>
-        <%= f.text_field :subject, placeholder: l(:label_checklist_add_item),
+      <%= form_with url: issue_checklist_items_path(@issue),
+                    id: 'checklist-add-form',
+                    class: 'checklist-add-form',
+                    local: false do |f| %>
+        <%= f.text_field :subject,
+                         placeholder: l(:label_checklist_add_item),
                          class: 'checklist-new-item-input',
                          autocomplete: 'off',
                          name: 'checklist_item[subject]' %>
-        <%= f.submit '+', class: 'checklist-add-btn' %>
+        <%= hidden_field_tag 'checklist_item[is_section]', '0', id: 'checklist-is-section' %>
+        <button type="button" class="checklist-add-btn" id="checklist-add-item-btn">
+          <%= l(:label_checklist_add_item) %>
+        </button>
+        <button type="button" class="checklist-add-btn checklist-add-section-btn" id="checklist-add-section-btn">
+          <%= l(:label_checklist_add_section_button) %>
+        </button>
       <% end %>
     </div>
   <% end %>
 </div>
+<% end %>

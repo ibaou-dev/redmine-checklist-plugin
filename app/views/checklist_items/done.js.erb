@@ -1,0 +1,19 @@
+// done.js.erb — toggle is-done class + line-through, refresh progress
+(function() {
+  var li = document.getElementById('checklist-item-<%= @checklist_item.id %>');
+  if (li) {
+    if (<%= @checklist_item.done?.to_s %>) {
+      li.classList.add('is-done');
+    } else {
+      li.classList.remove('is-done');
+    }
+  }
+
+  // Replace progress wrapper
+  var wrap = document.getElementById('checklist-progress-<%= @issue.id %>');
+  if (wrap) {
+    var tmp = document.createElement('div');
+    tmp.innerHTML = <%= raw render('checklists/checklist_progress', issue: @issue).to_json %>;
+    wrap.replaceWith(tmp.firstElementChild);
+  }
+})();

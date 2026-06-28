@@ -1,0 +1,13 @@
+// destroy.js.erb — remove deleted row, refresh progress
+(function() {
+  var li = document.getElementById('checklist-item-<%= @checklist_item.id %>');
+  if (li) { li.remove(); }
+
+  // Replace progress wrapper
+  var wrap = document.getElementById('checklist-progress-<%= @issue.id %>');
+  if (wrap) {
+    var tmp = document.createElement('div');
+    tmp.innerHTML = <%= raw render('checklists/checklist_progress', issue: @issue).to_json %>;
+    wrap.replaceWith(tmp.firstElementChild);
+  }
+})();

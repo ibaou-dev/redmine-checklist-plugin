@@ -1,0 +1,16 @@
+// update.js.erb — re-render the updated row in place
+(function() {
+  var li = document.getElementById('checklist-item-<%= @checklist_item.id %>');
+  if (li) {
+    var tmp = document.createElement('div');
+    tmp.innerHTML = <%= raw render('checklists/checklist_item',
+                               item:       @checklist_item,
+                               can_done:   User.current.allowed_to?(:done_checklists, @project) ||
+                                           User.current.allowed_to?(:manage_checklists, @project),
+                               can_manage: User.current.allowed_to?(:manage_checklists, @project)).to_json %>;
+    li.replaceWith(tmp.firstElementChild);
+    if (typeof initChecklistRow === 'function') {
+      initChecklistRow(document.getElementById('checklist-item-<%= @checklist_item.id %>'));
+    }
+  }
+})();

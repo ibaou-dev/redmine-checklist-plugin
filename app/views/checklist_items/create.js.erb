@@ -1,0 +1,31 @@
+// create.js.erb — append new row, clear form, refresh progress
+(function() {
+  var list = document.getElementById('checklist-items');
+  if (list) {
+    var tmp = document.createElement('div');
+    tmp.innerHTML = <%= raw render('checklists/checklist_item',
+                               item:       @checklist_item,
+                               can_done:   User.current.allowed_to?(:done_checklists, @project) ||
+                                           User.current.allowed_to?(:manage_checklists, @project),
+                               can_manage: User.current.allowed_to?(:manage_checklists, @project)).to_json %>;
+    list.appendChild(tmp.firstElementChild);
+    if (typeof initChecklistRow === 'function') { initChecklistRow(list.lastElementChild); }
+  }
+
+  // Clear and refocus input; reset section-flag so next add defaults to item
+  var form = document.getElementById('checklist-add-form');
+  if (form) {
+    var field = form.querySelector('.checklist-new-item-input');
+    if (field) { field.value = ''; field.focus(); }
+    var sFlag = document.getElementById('checklist-is-section');
+    if (sFlag) sFlag.value = '0';
+  }
+
+  // Replace progress wrapper
+  var wrap = document.getElementById('checklist-progress-<%= @issue.id %>');
+  if (wrap) {
+    var tmp2 = document.createElement('div');
+    tmp2.innerHTML = <%= raw render('checklists/checklist_progress', issue: @issue).to_json %>;
+    wrap.replaceWith(tmp2.firstElementChild);
+  }
+})();

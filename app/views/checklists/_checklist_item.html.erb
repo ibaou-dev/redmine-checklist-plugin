@@ -1,29 +1,62 @@
-<%# Renders a single checklist item row %>
-<li class="checklist-item <%= item.done? ? 'is-done' : '' %>"
-    id="checklist-item-<%= item.id %>"
-    data-id="<%= item.id %>">
+<%# Renders a single checklist item row.
+    Locals: item, can_done (bool), can_manage (bool). %>
+<% if item.section? %>
+  <li class="checklist-item checklist-section"
+      id="checklist-item-<%= item.id %>"
+      data-id="<%= item.id %>">
+    <% if can_manage %>
+      <span class="checklist-handle" aria-label="<%= l(:label_checklist_drag_to_reorder) %>">&#8942;</span>
+    <% end %>
+    <span class="checklist-section-label"><%= item.subject %></span>
+    <% if can_manage %>
+      <span class="checklist-item-actions">
+        <a href="#"
+           class="checklist-edit"
+           aria-label="<%= l(:label_checklist_edit_item) %>"
+           data-url="<%= issue_checklist_item_path(@issue, item) %>">&#9998;</a>
+        <%= link_to '&#10005;'.html_safe,
+                    issue_checklist_item_path(@issue, item),
+                    method: :delete,
+                    remote: true,
+                    class: 'checklist-delete',
+                    'aria-label': l(:button_delete) %>
+      </span>
+    <% end %>
+  </li>
+<% else %>
+  <li class="checklist-item <%= item.done? ? 'is-done' : '' %>"
+      id="checklist-item-<%= item.id %>"
+      data-id="<%= item.id %>">
 
-  <span class="checklist-handle" title="Drag to reorder">&#8942;</span>
+    <% if can_manage %>
+      <span class="checklist-handle" aria-label="<%= l(:label_checklist_drag_to_reorder) %>">&#8942;</span>
+    <% end %>
 
-  <%= check_box_tag "checklist_item[is_done]",
-                    "1",
-                    item.done?,
-                    class: 'checklist-checkbox',
-                    data: {
-                      url:    issue_checklist_item_path(@issue, item),
-                      method: :patch
-                    } %>
+    <%= check_box_tag "checklist_item[is_done]",
+                      "1",
+                      item.done?,
+                      class: 'checklist-checkbox',
+                      disabled: !can_done,
+                      data: {
+                        url:    done_issue_checklist_item_path(@issue, item),
+                        method: :patch
+                      } %>
 
-  <span class="checklist-item-text"><%= item.subject %></span>
+    <span class="checklist-item-text"><%= item.subject %></span>
 
-  <% if User.current.allowed_to?(:manage_checklists, @project) %>
-    <span class="checklist-item-actions">
-      <%= link_to '✕',
-                  issue_checklist_item_path(@issue, item),
-                  method: :delete,
-                  remote: true,
-                  class: 'checklist-delete',
-                  title: l(:button_delete) %>
-    </span>
-  <% end %>
-</li>
+    <% if can_manage %>
+      <span class="checklist-item-actions">
+        <a href="#"
+           class="checklist-edit"
+           aria-label="<%= l(:label_checklist_edit_item) %>"
+           data-url="<%= issue_checklist_item_path(@issue, item) %>">&#9998;</a>
+        <%= link_to '&#10005;'.html_safe,
+                    issue_checklist_item_path(@issue, item),
+                    method: :delete,
+                    remote: true,
+                    class: 'checklist-delete',
+                    'aria-label': l(:button_delete) %>
+      </span>
+    <% end %>
+  </li>
+<% end %>

@@ -1,10 +1,12 @@
 class ChecklistItemsController < ApplicationController
   before_action :find_issue
-  before_action :find_checklist_item, only: [:update, :destroy]
+  before_action :find_checklist_item, only: [:update, :destroy, :done]
   before_action :authorize
 
-  accept_api_auth :index, :create, :update, :destroy, :reorder
+  accept_api_auth :index, :create, :update, :destroy, :reorder, :done
 
+  # GET /issues/:issue_id/checklist_items(.json)
+  # Requires: view_checklists
   def index
     @checklist_items = @issue.checklist_items.ordered
     respond_to do |format|
@@ -12,9 +14,12 @@ class ChecklistItemsController < ApplicationController
     end
   end
 
+  # POST /issues/:issue_id/checklist_items(.js|.json)
+  # Requires: manage_checklists
   def create
     @checklist_item = @issue.checklist_items.build(checklist_item_params)
-    @checklist_item.position = @issue.checklist_items.count
+    @checklist_item.author_id = User.current.id
+    @checklist_item.position  = @issue.checklist_items.maximum(:position).to_i + 1
 
     respond_to do |format|
       if @checklist_item.save
@@ -27,9 +32,11 @@ class ChecklistItemsController < ApplicationController
     end
   end
 
+  # PATCH /issues/:issue_id/checklist_items/:id(.js|.json)
+  # Requires: manage_checklists — for subject/field edits only
   def update
     respond_to do |format|
-      if @checklist_item.update(checklist_item_params)
+      if @checklist_item.update(manage_checklist_item_params)
         format.js
         format.json { render json: @checklist_item }
       else
@@ -39,6 +46,22 @@ class ChecklistItemsController < ApplicationController
     end
   end
 
+  # PATCH /issues/:issue_id/checklist_items/:id/done(.js|.json)
+  # Requires: done_checklists — toggles is_done only
+  def done
+    respond_to do |format|
+      if @checklist_item.update(is_done: params.dig(:checklist_item, :is_done) == '1')
+        format.js
+        format.json { render json: @checklist_item }
+      else
+        format.js   { render :error }
+        format.json { render json: @checklist_item.errors, status: :unprocessable_entity }
+      end
+    end
+  end
+
+  # DELETE /issues/:issue_id/checklist_items/:id(.js|.json)
+  # Requires: manage_checklists
   def destroy
     @checklist_item.destroy
     respond_to do |format|
@@ -47,6 +70,8 @@ class ChecklistItemsController < ApplicationController
     end
   end
 
+  # POST /issues/:issue_id/checklist_items/reorder(.js|.json)
+  # Requires: manage_checklists
   def reorder
     ids = params[:ids] || []
     ids.each_with_index do |id, index|
@@ -73,7 +98,11 @@ class ChecklistItemsController < ApplicationController
     render_404
   end
 
+  # Params for manage_checklists actions (create/update): subject + is_section
   def checklist_item_params
-    params.require(:checklist_item).permit(:subject, :is_done, :position)
+    params.require(:checklist_item).permit(:subject, :is_section, :position)
   end
+
+  # Alias used in create (same set)
+  alias manage_checklist_item_params checklist_item_params
 end
