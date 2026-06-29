@@ -71,16 +71,21 @@ Goal: a fully usable single-issue checklist.
 
 **Exit:** moving an issue to a guarded status with unchecked mandatory items is rejected with a clear error, through every code path. ✔ Verified e2e (59 tests) + independent checks through the real edit form and DB. Shipped as **v0.4.0**.
 
-## Phase 5 — v1.0 polish
+## Phase 5 — v1.0 polish ✅ (done — v1.0.0)
 
-- Issue-list column/filter: filter and display issues by checklist completion.
-- Multiline paste to bulk-add items.
-- i18n: complete locale coverage beyond English.
-- Prism theme co-styling pass.
-- Cross-DB (PostgreSQL + MySQL) and cross-version (5.0, 6.1) verification.
-- Packaging, README, install docs, release tag.
+- ✅ Issue-list **column**: optional "Checklist" column showing `done/total · %` on the issue list / saved queries (exports to CSV/PDF). *(A completion **filter** was deferred — see future work.)*
+- ✅ i18n pass: every user-facing string sourced from a locale key; English locale complete (verified no "Translation missing" across all plugin pages).
+- ✅ Prism theme co-styling — the plugin is built and visually verified against the Prism theme throughout.
+- ✅ Compatibility set honestly to **Redmine 6.0+** (Rails 7.2, Ruby 3.x) — the tested target; the migrations/code use Rails 7.2 / Ruby 3.x features, so the earlier "5.0+" claim was dropped.
+- ✅ Packaging, README, install docs, release tag (v1.0.0).
 
-**Exit:** v1.0 tagged and installable via the standard Redmine plugin flow.
+**Exit:** v1.0 tagged and installable via the standard Redmine plugin flow. ✔ Shipped as **v1.0.0** (64 e2e tests).
+
+### Deferred to future work
+- Issue-list completion **filter** (filter issues by checklist state).
+- **Multiline paste** to bulk-add items.
+- Additional **locale translations** (the structure supports them; English ships complete).
+- Cross-DB (MySQL) / older-version runtime verification (developed and tested on PostgreSQL + Redmine 6.1; code uses portable ActiveRecord only — no raw vendor SQL).
 
 ## Beyond v1.0 (backlog)
 

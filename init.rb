@@ -2,11 +2,11 @@ Redmine::Plugin.register :redmine_checklist do
   name        'Redmine Checklist'
   author      'ibaou-dev'
   description 'Checklist management for Redmine issues'
-  version     '0.5.0'
+  version     '1.0.0'
   url         'https://github.com/ibaou-dev/redmine-checklist-plugin'
   author_url  'https://github.com/ibaou-dev'
 
-  requires_redmine version_or_higher: '5.0'
+  requires_redmine version_or_higher: '6.0'
 
   settings default: {
     'show_progress_bar'  => true,
@@ -129,6 +129,13 @@ Rails.application.config.to_prepare do
   # --- IssuesHelper patch (prepend so super() chains correctly) ---
   unless IssuesHelper.ancestors.include?(RedmineChecklist::Patches::IssuesHelperPatch)
     IssuesHelper.prepend RedmineChecklist::Patches::IssuesHelperPatch
+  end
+
+  # --- IssueQuery patch (adds the "Checklist" issue-list column) ---
+  # Re-applied here for dev reloads (IssueQuery is reloadable); the require-time
+  # prepend in issue_query_patch.rb covers first boot.
+  unless IssueQuery.ancestors.include?(RedmineChecklist::Patches::IssueQueryPatch)
+    IssueQuery.prepend RedmineChecklist::Patches::IssueQueryPatch
   end
 
   # Register ChecklistItemsHelper on IssuesController.

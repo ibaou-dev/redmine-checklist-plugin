@@ -2,6 +2,14 @@
 
 All notable changes to this docs bundle.
 
+## 2026-06-29 — v1.0.0 (stable)
+
+- **Issue-list "Checklist" column.** `Issue#checklist_progress` returns `done/total · %`; surfaced as an opt-in query column via `IssueQuery#available_columns` prepend (`lib/redmine_checklist/patches/issue_query_patch.rb`, applied require-time + re-applied in to_prepare for dev reloads). Non-sortable text → exports to CSV/PDF; blank for issues without checklist tasks. (Value is computed per-issue, so it only queries `checklist_items` for issues whose query selects the column.)
+- **i18n pass.** Verified no hardcoded user-facing strings (views/JS) and that every `l(:…)` our-namespace key exists; runtime sweep of all plugin pages showed zero "Translation missing".
+- **Honest compatibility.** `requires_redmine` raised 5.0 → **6.0** (migrations are `ActiveRecord::Migration[7.2]` and code uses Ruby 3.x endless methods); README updated to "Redmine 6.x (Rails 7.2, Ruby 3.x)".
+- Deferred to future work: completion filter, multiline paste bulk-add, extra locales, MySQL/older-version runtime testing (code is portable ActiveRecord — no vendor SQL).
+- 64 Playwright e2e tests (real Chrome). New `phase5-issue-column` spec.
+
 ## 2026-06-29 — Per-project enforcement + row polish (v0.5.0)
 
 - **Per-project enforcement override.** New `checklist_project_settings` table (migration 003) + `ChecklistProjectSetting` with `effective_for(project)` resolver: tri-state `inherit` / `enabled` (project's own statuses) / `disabled`; **project wins**, no row = inherit global. The `Issue` validation now reads the resolver instead of global settings directly. Config UI is an enforcement panel on the project *Checklist* tab (gated by `manage_checklist_templates`); the project menu caption changed to "Checklist".

@@ -53,6 +53,15 @@ module RedmineChecklist
         done = tasks.count(&:is_done?)
         { done: done, total: total, percent: (done.to_f / total * 100).round }
       end
+
+      # Short text for the issue-list "Checklist" column — e.g. "3/5 (60%)",
+      # or nil for issues that have no checklist tasks.
+      def checklist_progress
+        stats = checklist_progress_stats
+        return nil unless stats
+
+        "#{stats[:done]}/#{stats[:total]} (#{stats[:percent]}%)"
+      end
     end
   end
 end

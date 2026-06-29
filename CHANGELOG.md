@@ -4,6 +4,21 @@ All notable changes to the Redmine Checklist plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.0.0] — 2026-06-29
+
+**v1.0 — issue-list column + polish.** First stable release.
+
+### Added
+- **Issue-list "Checklist" column**: an optional column for the issue list and saved queries showing each issue's progress (`done/total · %`); issues with no checklist tasks render blank, and it exports to CSV/PDF.
+
+### Changed
+- **Compatibility**: the plugin now declares **Redmine 6.0+** (Rails 7.2, Ruby 3.x) — the version it is built and tested against — instead of an unverified "5.0+" claim (the migrations and code use Rails 7.2 / Ruby 3.x features).
+- i18n pass: every user-facing string is sourced from a locale key; the English locale is complete (verified no "Translation missing" across all plugin pages).
+
+### Notes
+- This release adds no database migration. Feature set: interactive checklists, sections, change history, done-ratio, activity & search, templates (global/project + auto-apply), mandatory-item enforcement (global or per-project), per-item assignment, and the issue-list column.
+- Verified by **64 Playwright end-to-end tests** (real Chrome), plus independent behavioral checks of every subsystem.
+
 ## [0.5.0] — 2026-06-29
 
 **Per-project enforcement override + checklist-row UI polish.**
@@ -119,6 +134,7 @@ First public release — **Phase 1 MVP: interactive issue checklists**.
 ### Notes
 - Built for Redmine 6.x; requires Redmine 5.0+. No proprietary gem dependencies.
 
+[1.0.0]: https://github.com/ibaou-dev/redmine-checklist-plugin/releases/tag/v1.0.0
 [0.5.0]: https://github.com/ibaou-dev/redmine-checklist-plugin/releases/tag/v0.5.0
 [0.4.0]: https://github.com/ibaou-dev/redmine-checklist-plugin/releases/tag/v0.4.0
 [0.3.1]: https://github.com/ibaou-dev/redmine-checklist-plugin/releases/tag/v0.3.1
