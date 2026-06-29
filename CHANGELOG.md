@@ -4,6 +4,24 @@ All notable changes to the Redmine Checklist plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.0.1] — 2026-06-29
+
+**Polish — completeness fixes.** No new user-facing features.
+
+### Added
+- **History now records metadata edits**: changing a checklist item's **assignee**, **due date**, or **mandatory** flag is logged in the issue History tab (e.g. "Checklist: Task — assigned to Jane", "— due 2026-07-15", "— marked mandatory"), with the same consolidation as other checklist changes.
+- **Separate `manage_checklist_enforcement` permission**: per-project mandatory-item enforcement is now gated by its own permission instead of reusing `manage_checklist_templates`. The project *Checklist* tab shows the templates section and the enforcement panel independently, per the member's permissions.
+
+### Changed / Fixed
+- **Mandatory items can no longer be silently unchecked while the issue is in a guarded status** — the uncheck is refused (the checkbox reverts and a message explains to change the issue status first), keeping the enforcement invariant consistent both ways.
+- **Removed the unused `is_public` flag** from checklist templates (it never affected anything — scope is determined by `project_id`). Dropped from the form and the database (migration 004).
+
+### Upgrade — ⚠️ run the migration
+This release drops a column (`checklist_templates.is_public`). After extracting, run `bundle exec rake redmine:plugins:migrate RAILS_ENV=production NAME=redmine_checklist` and restart. To let members configure per-project enforcement, grant the new **`manage_checklist_enforcement`** permission (admins are unaffected).
+
+### Tested
+- 67 Playwright e2e tests (real Chrome). New `polish` spec covers metadata journaling, the uncheck-guard, and the template/enforcement permission separation.
+
 ## [1.0.0] — 2026-06-29
 
 **v1.0 — issue-list column + polish.** First stable release.
@@ -134,6 +152,7 @@ First public release — **Phase 1 MVP: interactive issue checklists**.
 ### Notes
 - Built for Redmine 6.x; requires Redmine 5.0+. No proprietary gem dependencies.
 
+[1.0.1]: https://github.com/ibaou-dev/redmine-checklist-plugin/releases/tag/v1.0.1
 [1.0.0]: https://github.com/ibaou-dev/redmine-checklist-plugin/releases/tag/v1.0.0
 [0.5.0]: https://github.com/ibaou-dev/redmine-checklist-plugin/releases/tag/v0.5.0
 [0.4.0]: https://github.com/ibaou-dev/redmine-checklist-plugin/releases/tag/v0.4.0

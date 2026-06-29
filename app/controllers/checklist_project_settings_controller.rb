@@ -17,7 +17,7 @@ class ChecklistProjectSettingsController < ApplicationController
 
   def find_project_and_authorize
     @project = Project.find(params[:project_id])
-    render_403 unless User.current.allowed_to?(:manage_checklist_templates, @project)
+    render_403 unless User.current.allowed_to?(:manage_checklist_enforcement, @project)
   rescue ActiveRecord::RecordNotFound
     render_404
   end

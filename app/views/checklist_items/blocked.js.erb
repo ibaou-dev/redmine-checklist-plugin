@@ -1,0 +1,24 @@
+// blocked.js.erb — the uncheck was refused (mandatory item, guarded status).
+// Revert the checkbox to checked and show a flash message.
+(function() {
+  var li = document.getElementById('checklist-item-<%= @checklist_item.id %>');
+  if (li) {
+    var cb = li.querySelector('.checklist-checkbox');
+    if (cb) { cb.checked = true; }
+    li.classList.add('is-done');
+  }
+
+  var notice = document.getElementById('flash_error');
+  if (!notice) {
+    notice = document.createElement('div');
+    notice.id = 'flash_error';
+    notice.className = 'flash error';
+    var content = document.getElementById('content');
+    if (content) { content.insertBefore(notice, content.firstChild); }
+  }
+  if (notice) {
+    notice.textContent = <%= raw @block_message.to_json %>;
+    notice.style.display = '';
+    setTimeout(function() { notice.style.display = 'none'; }, 5000);
+  }
+})();

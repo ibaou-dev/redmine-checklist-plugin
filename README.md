@@ -2,7 +2,7 @@
 
 A checklist plugin for Redmine issues — add ordered, checkable items to any issue, with progress tracking, sections, templates, per-item assignment, and mandatory-item enforcement. Open-source (GPL-3.0), dependency-light (no proprietary gems), built and tested for **Redmine 6.x** (Rails 7.2, Ruby 3.x).
 
-> **Status:** **v1.0.0** — stable. The interactive single-issue checklist, change history,
+> **Status:** **v1.0.1** — stable. The interactive single-issue checklist, change history,
 > done-ratio integration, activity feed, search, reusable **templates**, **mandatory-item
 > enforcement** (global **or per-project**), **per-item assignment** (assignee/due date), and
 > the optional **issue-list "Checklist" column** are all shipped and end-to-end tested. See the
@@ -55,7 +55,7 @@ The plugin directory must be named `redmine_checklist`.
 
 ```bash
 cd /path/to/redmine/plugins
-tar xzf redmine_checklist-1.0.0.tar.gz   # extracts redmine_checklist/
+tar xzf redmine_checklist-1.0.1.tar.gz   # extracts redmine_checklist/
 cd /path/to/redmine
 bundle exec rake redmine:plugins:migrate RAILS_ENV=production NAME=redmine_checklist
 # restart Redmine
@@ -71,7 +71,7 @@ bundle exec rake redmine:plugins:migrate RAILS_ENV=production NAME=redmine_check
 # restart Redmine
 ```
 
-Then grant the `view_checklists` / `done_checklists` / `manage_checklists` permissions to roles under each project's *Issue tracking* module. To let project members manage **project-scoped templates**, also grant `manage_checklist_templates` (global templates are managed by admins under *Administration → Checklist templates*).
+Then grant the `view_checklists` / `done_checklists` / `manage_checklists` permissions to roles under each project's *Issue tracking* module. To let project members manage **project-scoped templates** grant `manage_checklist_templates`, and to let them configure **per-project mandatory-item enforcement** grant `manage_checklist_enforcement` (global templates are managed by admins under *Administration → Checklist templates*).
 
 Releases (with packaged tarball/zip) are on the [Releases page](https://github.com/ibaou-dev/redmine-checklist-plugin/releases).
 

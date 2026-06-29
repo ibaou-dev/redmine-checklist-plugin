@@ -2,7 +2,7 @@ Redmine::Plugin.register :redmine_checklist do
   name        'Redmine Checklist'
   author      'ibaou-dev'
   description 'Checklist management for Redmine issues'
-  version     '1.0.0'
+  version     '1.0.1'
   url         'https://github.com/ibaou-dev/redmine-checklist-plugin'
   author_url  'https://github.com/ibaou-dev'
 
@@ -36,6 +36,12 @@ Redmine::Plugin.register :redmine_checklist do
       map.permission :manage_checklist_templates,
                      { checklist_templates: [:index, :new, :create, :edit, :update, :destroy] },
                      require: :member
+
+      # manage_checklist_enforcement: configure per-project mandatory-item
+      # enforcement (separate from template management).
+      map.permission :manage_checklist_enforcement,
+                     { checklist_project_settings: [:update] },
+                     require: :member
     end
   end
 
@@ -45,12 +51,13 @@ Redmine::Plugin.register :redmine_checklist do
   # AFTER the acts_as_activity_provider module has been included in ApplicationRecord).
   activity_provider :checklists, class_name: 'ChecklistItem', default: false
 
-  # Project menu tab — visible only to members with manage_checklist_templates
+  # Project menu tab — visible to members who can manage templates OR enforcement.
   menu :project_menu, :checklist_templates,
        { controller: 'checklist_templates', action: 'index' },
        param:   :project_id,
        caption: :label_checklist_project_menu,
-       if:      proc { |p| User.current.allowed_to?(:manage_checklist_templates, p) }
+       if:      proc { |p| User.current.allowed_to?(:manage_checklist_templates, p) ||
+                          User.current.allowed_to?(:manage_checklist_enforcement, p) }
 end
 
 # Register the search type so Redmine's search controller includes it.

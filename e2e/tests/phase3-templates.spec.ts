@@ -47,7 +47,6 @@ function seedTemplate(name: string, opts: { items: Array<{ subject: string; sect
   const attrs = [
     `name: ${JSON.stringify(name)}`,
     `project_id: nil`,
-    `is_public: true`,
     opts.isDefault ? `is_default: true` : null,
     opts.trackerId ? `tracker_id: ${opts.trackerId}` : null,
     `template_items: ${JSON.stringify(itemsJson)}`,

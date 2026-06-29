@@ -4,7 +4,7 @@
      end
    end %>
 
-<% if @project %>
+<% if @project && User.current.allowed_to?(:manage_checklist_enforcement, @project) %>
   <% setting = ChecklistProjectSetting.find_or_initialize_by(project_id: @project.id) %>
   <div class="box">
     <h3><%= l(:label_checklist_enforcement) %></h3>
@@ -27,6 +27,7 @@
   </div>
 <% end %>
 
+<% if @project.nil? || User.current.allowed_to?(:manage_checklist_templates, @project) %>
 <div class="contextual">
   <%= link_to l(:label_checklist_template_new),
               @project ? new_project_checklist_template_path(@project)
@@ -89,4 +90,5 @@
       <% end %>
     </tbody>
   </table>
+<% end %>
 <% end %>

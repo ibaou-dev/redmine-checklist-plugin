@@ -15,7 +15,8 @@
 class ChecklistHistory
   # Lightweight struct to hold a checklist item's relevant fields.
   # We use Struct, NOT OpenStruct (gone in Rails 7.2 safe usage).
-  ChecklistItemSnapshot = Struct.new(:id, :subject, :is_done, :is_section, :position)
+  ChecklistItemSnapshot = Struct.new(:id, :subject, :is_done, :is_section, :position,
+                                     :assignee_id, :due_date, :is_mandatory)
 
   # --------------------------------------------------------------------------
   # Class helpers
@@ -24,18 +25,21 @@ class ChecklistHistory
   # Build a snapshot array from ActiveRecord ChecklistItem objects.
   def self.from_records(records)
     records.map do |r|
-      ChecklistItemSnapshot.new(r.id, r.subject, r.is_done, r.is_section, r.position)
+      ChecklistItemSnapshot.new(r.id, r.subject, r.is_done, r.is_section, r.position,
+                                r.assignee_id, r.due_date&.to_s, r.is_mandatory)
     end
   end
 
   # Deserialize a JSON string (as stored in JournalDetail#value / #old_value)
-  # back into snapshot structs.
+  # back into snapshot structs. Older journals lack the assignee/due/mandatory
+  # keys; those read as nil and simply produce no spurious "changes".
   def self.from_json(json_str)
     return [] if json_str.blank?
     parsed = JSON.parse(json_str)
     parsed.map do |h|
       ChecklistItemSnapshot.new(
-        h['id'], h['subject'], h['is_done'], h['is_section'], h['position']
+        h['id'], h['subject'], h['is_done'], h['is_section'], h['position'],
+        h['assignee_id'], h['due_date'], h['is_mandatory']
       )
     end
   rescue JSON::ParserError
@@ -46,11 +50,14 @@ class ChecklistHistory
   def self.serialize(items)
     items.map do |item|
       {
-        id:         item.id,
-        subject:    item.subject,
-        is_done:    item.is_done,
-        is_section: item.is_section,
-        position:   item.respond_to?(:position) ? item.position : 0
+        id:           item.id,
+        subject:      item.subject,
+        is_done:      item.is_done,
+        is_section:   item.is_section,
+        position:     item.respond_to?(:position) ? item.position : 0,
+        assignee_id:  item.respond_to?(:assignee_id) ? item.assignee_id : nil,
+        due_date:     (item.due_date.to_s if item.respond_to?(:due_date) && item.due_date.present?),
+        is_mandatory: item.respond_to?(:is_mandatory) ? item.is_mandatory : nil
       }
     end.to_json
   end
@@ -70,10 +77,15 @@ class ChecklistHistory
   #     undone:  [subjects],            # toggled done -> undone
   #     added:   [subjects],            # ids present only in the after state
   #     removed: [subjects],            # ids present only in the before state
-  #     renamed: [{ from:, to: }, ...]  # same id, subject changed
+  #     renamed:   [{ from:, to: }, ...]        # same id, subject changed
+  #     reassigned:[{ subject:, to: }, ...]      # assignee_id changed (to = id|nil)
+  #     due_changed:[{ subject:, to: }, ...]     # due_date changed (to = date|nil)
+  #     mandatory_changed:[{ subject:, mandatory: }, ...] # is_mandatory toggled
   #   }
   # Renames are detected by id (NOT by subject set-difference) so a rename does
-  # not masquerade as a delete + add.
+  # not masquerade as a delete + add. Assignee/due/mandatory changes are only
+  # reported for items that exist in BOTH snapshots (added/removed items are not
+  # also reported as reassigned, etc.).
   def diff
     was_map    = @was.index_by(&:id)
     become_map = @become.index_by(&:id)
@@ -91,7 +103,15 @@ class ChecklistHistory
     renamed = shared_ids.select { |id| was_map[id].subject != become_map[id].subject }
                         .map    { |id| { from: was_map[id].subject, to: become_map[id].subject } }
 
-    { done: done, undone: undone, added: added, removed: removed, renamed: renamed }
+    reassigned = shared_ids.select { |id| was_map[id].assignee_id != become_map[id].assignee_id }
+                           .map    { |id| { subject: become_map[id].subject, to: become_map[id].assignee_id } }
+    due_changed = shared_ids.select { |id| was_map[id].due_date.to_s != become_map[id].due_date.to_s }
+                            .map    { |id| { subject: become_map[id].subject, to: become_map[id].due_date } }
+    mandatory_changed = shared_ids.select { |id| !!was_map[id].is_mandatory != !!become_map[id].is_mandatory }
+                                  .map    { |id| { subject: become_map[id].subject, mandatory: !!become_map[id].is_mandatory } }
+
+    { done: done, undone: undone, added: added, removed: removed, renamed: renamed,
+      reassigned: reassigned, due_changed: due_changed, mandatory_changed: mandatory_changed }
   end
 
   # True when the before/after snapshots are equivalent across every tracked
@@ -99,8 +119,7 @@ class ChecklistHistory
   # collapses to nothing during consolidation).
   def empty_diff?
     d = diff
-    d[:done].empty? && d[:undone].empty? &&
-      d[:added].empty? && d[:removed].empty? && d[:renamed].empty?
+    d.values.all?(&:empty?)
   end
 
   # Build an unsaved JournalDetail representing this change.

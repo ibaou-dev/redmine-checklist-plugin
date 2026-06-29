@@ -65,10 +65,23 @@ class ChecklistItemsController < ApplicationController
   # PATCH /issues/:issue_id/checklist_items/:id/done(.js|.json)
   # Requires: done_checklists — toggles is_done only
   def done
+    new_done = params.dig(:checklist_item, :is_done) == '1'
+
+    # Enforcement invariant: don't allow unchecking a mandatory item while the
+    # issue is in a status that requires all mandatory items complete.
+    if !new_done && checklist_uncheck_blocked?(@checklist_item)
+      @block_message = l(:error_checklist_mandatory_locked)
+      respond_to do |format|
+        format.js   { render :blocked }
+        format.json { render json: { error: @block_message }, status: :unprocessable_entity }
+      end
+      return
+    end
+
     snapshot_before = @issue.checklist_items.ordered.to_a
 
     respond_to do |format|
-      if @checklist_item.update(is_done: params.dig(:checklist_item, :is_done) == '1')
+      if @checklist_item.update(is_done: new_done)
         record_checklist_journal(snapshot_before)
         ChecklistItem.recalc_done_ratio(@issue.id)
         format.js
@@ -144,6 +157,16 @@ class ChecklistItemsController < ApplicationController
     @checklist_item = @issue.checklist_items.find(params[:id])
   rescue ActiveRecord::RecordNotFound
     render_404
+  end
+
+  # True when unchecking +item+ would break the mandatory-item enforcement
+  # invariant: it is a mandatory task AND the issue's CURRENT status is one that
+  # requires all mandatory items complete (per the project-wins config).
+  def checklist_uncheck_blocked?(item)
+    return false unless item.is_mandatory? && !item.is_section?
+
+    cfg = ChecklistProjectSetting.effective_for(@issue.project)
+    cfg[:enabled] && cfg[:status_ids].include?(@issue.status_id.to_s)
   end
 
   # Params for the create action: subject, is_section, position only

@@ -1,5 +1,6 @@
 class ChecklistTemplatesController < ApplicationController
   before_action :find_project_and_authorize
+  before_action :require_template_management, only: [:new, :create, :edit, :update, :destroy]
   before_action :find_template, only: [:edit, :update, :destroy]
 
   accept_api_auth :index
@@ -58,19 +59,33 @@ class ChecklistTemplatesController < ApplicationController
 
   private
 
-  # Dual-mode authorization:
-  #   - project_id present → project-scoped; require manage_checklist_templates
-  #   - no project_id      → global/admin; require admin
+  # Dual-mode authorization for reaching the page:
+  #   - project_id present → project-scoped; member with EITHER manage_checklist_
+  #     templates OR manage_checklist_enforcement (the page hosts both sections).
+  #   - no project_id      → global/admin; require admin.
+  # Template CRUD is additionally gated by +require_template_management+.
   def find_project_and_authorize
     if params[:project_id].present?
       @project = Project.find(params[:project_id])
-      unless User.current.allowed_to?(:manage_checklist_templates, @project)
+      unless User.current.allowed_to?(:manage_checklist_templates, @project) ||
+             User.current.allowed_to?(:manage_checklist_enforcement, @project)
         return render_403
       end
     else
       @project = nil
       require_admin
     end
+  rescue ActiveRecord::RecordNotFound
+    render_404
+  end
+
+  # Template create/edit/delete needs manage_checklist_templates specifically
+  # (an enforcement-only member can view the page but not manage templates).
+  # Global scope is already admin-gated by find_project_and_authorize.
+  def require_template_management
+    return if @project.nil?
+
+    render_403 unless User.current.allowed_to?(:manage_checklist_templates, @project)
   end
 
   def find_template
@@ -92,7 +107,7 @@ class ChecklistTemplatesController < ApplicationController
 
   def template_params
     params.require(:checklist_template).permit(
-      :name, :category_id, :tracker_id, :is_default, :is_public, :template_text
+      :name, :category_id, :tracker_id, :is_default, :template_text
     )
   end
 end

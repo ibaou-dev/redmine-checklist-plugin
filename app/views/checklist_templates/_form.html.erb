@@ -38,13 +38,6 @@
       <%= f.check_box :is_default, id: 'checklist_template_is_default' %>
     </p>
 
-    <% unless @project %>
-      <p>
-        <%= f.label :is_public, l(:field_is_public) %>
-        <%= f.check_box :is_public, id: 'checklist_template_is_public' %>
-      </p>
-    <% end %>
-
     <p>
       <%= f.label :template_text, l(:label_checklist_template_body) %>
       <%= f.text_area :template_text, rows: 10, cols: 60,

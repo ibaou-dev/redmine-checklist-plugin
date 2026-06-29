@@ -2,6 +2,14 @@
 
 All notable changes to this docs bundle.
 
+## 2026-06-29 — v1.0.1 (polish / completeness)
+
+- **History records metadata edits.** `ChecklistHistory` snapshot/serialize/diff extended with `assignee_id` / `due_date` / `is_mandatory`; new diff categories `reassigned` / `due_changed` / `mandatory_changed` rendered by the IssuesHelper patch (`checklist_meta_change_string`). `empty_diff?` now `values.all?(&:empty?)` so round-trips still consolidate. Old journals (pre-fields) read as nil → no spurious changes.
+- **Separate `manage_checklist_enforcement` permission.** Enforcement panel gated by it; template CRUD still needs `manage_checklist_templates`; the project Checklist page is reachable with EITHER, and each section renders per-permission. `ChecklistTemplatesController` gained `require_template_management` for CRUD actions; `ChecklistProjectSettingsController` authorizes on the new permission. Project menu shows for either permission.
+- **Uncheck-guard.** `ChecklistItemsController#done` refuses unchecking a mandatory item while the issue's current status is guarded (`checklist_uncheck_blocked?` + `blocked.js.erb` reverts the checkbox + flashes); keeps the invariant both ways.
+- **Dropped the cosmetic `is_public`** column (migration 004) + removed from form/params/i18n/e2e seed.
+- 67 Playwright e2e tests (real Chrome). New `polish` spec (metadata journaling, uncheck-guard, permission separation). NOTE: per-project overrides + role-permission grants are shared global state — polish spec uses clearCookies between user sessions and revokes granted perms in afterAll.
+
 ## 2026-06-29 — v1.0.0 (stable)
 
 - **Issue-list "Checklist" column.** `Issue#checklist_progress` returns `done/total · %`; surfaced as an opt-in query column via `IssueQuery#available_columns` prepend (`lib/redmine_checklist/patches/issue_query_patch.rb`, applied require-time + re-applied in to_prepare for dev reloads). Non-sortable text → exports to CSV/PDF; blank for issues without checklist tasks. (Value is computed per-issue, so it only queries `checklist_items` for issues whose query selects the column.)

@@ -97,12 +97,47 @@ module RedmineChecklist
                 end
               end
             end
+
+            diff[:reassigned].each do |change|
+              name  = change[:to] ? (User.find_by(id: change[:to])&.name || "##{change[:to]}") : nil
+              label = name ? l(:label_checklist_reassigned, name: name) : l(:label_checklist_unassigned)
+              strings << checklist_meta_change_string(change[:subject], label, no_html)
+            end
+
+            diff[:due_changed].each do |change|
+              label = change[:to].present? ? l(:label_checklist_due_set, date: change[:to]) : l(:label_checklist_due_cleared)
+              strings << checklist_meta_change_string(change[:subject], label, no_html)
+            end
+
+            diff[:mandatory_changed].each do |change|
+              label = change[:mandatory] ? l(:label_checklist_marked_mandatory) : l(:label_checklist_unmarked_mandatory)
+              strings << checklist_meta_change_string(change[:subject], label, no_html)
+            end
           rescue StandardError => e
             Rails.logger.error("ChecklistHistory render error: #{e.message}")
           end
         end
 
         strings
+      end
+
+      private
+
+      # Renders one "Checklist: <subject> (<label>)" change line, used for the
+      # assignee / due-date / mandatory metadata changes.
+      def checklist_meta_change_string(subject, label, no_html)
+        if no_html
+          "#{l(:label_checklist)}: #{subject} — #{label}"
+        else
+          content_tag(:span, class: 'checklist-journal-meta') do
+            safe_join([
+              content_tag(:strong, "#{l(:label_checklist)}: "),
+              subject,
+              ' ',
+              content_tag(:span, "(#{label})", class: 'checklist-journal-note')
+            ])
+          end
+        end
       end
     end
   end
