@@ -14,7 +14,7 @@
            class="checklist-edit"
            aria-label="<%= l(:label_checklist_edit_item) %>"
            data-url="<%= issue_checklist_item_path(@issue, item) %>">&#9998;</a>
-        <%= link_to '&#10005;'.html_safe,
+        <%= link_to sprite_icon('del', l(:button_delete), icon_only: true),
                     issue_checklist_item_path(@issue, item),
                     method: :delete,
                     remote: true,
@@ -50,7 +50,7 @@
            class="checklist-edit"
            aria-label="<%= l(:label_checklist_edit_item) %>"
            data-url="<%= issue_checklist_item_path(@issue, item) %>">&#9998;</a>
-        <%= link_to '&#10005;'.html_safe,
+        <%= link_to sprite_icon('del', l(:button_delete), icon_only: true),
                     issue_checklist_item_path(@issue, item),
                     method: :delete,
                     remote: true,

@@ -1,0 +1,27 @@
+<%#
+  Refreshes the issue History tab in place after a checklist mutation, so the
+  user sees the new journal entry without pressing F5.
+
+  Rebuilds @journals exactly as IssuesController#show does, then:
+   - if the History tab already exists, replaces only #tab-content-history's
+     content (preserving which sub-tab the user is currently viewing);
+   - otherwise (this is the issue's very first journal), builds the whole
+     #history tab bar from scratch.
+%>
+<%
+  @journals = @issue.visible_journals_with_index
+  @journals.reverse! if User.current.wants_comments_in_reverse_order?
+%>
+(function() {
+  var content = document.getElementById('tab-content-history');
+  if (content) {
+    content.innerHTML = <%= raw render(partial: 'issues/tabs/history',
+                                       locals: { tab: { name: 'history',
+                                                        locals: { issue: @issue, journals: @journals } } }).to_json %>;
+  } else {
+    var hist = document.getElementById('history');
+    if (hist) {
+      hist.innerHTML = <%= raw render_tabs(issue_history_tabs, issue_history_default_tab).to_json %>;
+    }
+  }
+})();

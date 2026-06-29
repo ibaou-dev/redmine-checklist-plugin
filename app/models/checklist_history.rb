@@ -64,23 +64,43 @@ class ChecklistHistory
     @become = become_items # array of snapshot structs or AR objects
   end
 
-  # Returns { done: [subjects], undone: [subjects] } comparing items by id.
+  # Returns an id-aware change set comparing the before/after snapshots:
+  #   {
+  #     done:    [subjects],            # toggled undone -> done
+  #     undone:  [subjects],            # toggled done -> undone
+  #     added:   [subjects],            # ids present only in the after state
+  #     removed: [subjects],            # ids present only in the before state
+  #     renamed: [{ from:, to: }, ...]  # same id, subject changed
+  #   }
+  # Renames are detected by id (NOT by subject set-difference) so a rename does
+  # not masquerade as a delete + add.
   def diff
     was_map    = @was.index_by(&:id)
     become_map = @become.index_by(&:id)
-    shared_ids = was_map.keys & become_map.keys
+    was_ids    = was_map.keys
+    become_ids = become_map.keys
+    shared_ids = was_ids & become_ids
 
     done   = shared_ids.select { |id| !was_map[id].is_done && become_map[id].is_done }
                        .map    { |id| become_map[id].subject }
     undone = shared_ids.select { |id| was_map[id].is_done && !become_map[id].is_done }
                        .map    { |id| was_map[id].subject }
 
-    { done: done, undone: undone }
+    added   = (become_ids - was_ids).map { |id| become_map[id].subject }
+    removed = (was_ids - become_ids).map { |id| was_map[id].subject }
+    renamed = shared_ids.select { |id| was_map[id].subject != become_map[id].subject }
+                        .map    { |id| { from: was_map[id].subject, to: become_map[id].subject } }
+
+    { done: done, undone: undone, added: added, removed: removed, renamed: renamed }
   end
 
+  # True when the before/after snapshots are equivalent across every tracked
+  # change category (so a net round-trip — e.g. check+uncheck, or add+delete —
+  # collapses to nothing during consolidation).
   def empty_diff?
     d = diff
-    d[:done].empty? && d[:undone].empty?
+    d[:done].empty? && d[:undone].empty? &&
+      d[:added].empty? && d[:removed].empty? && d[:renamed].empty?
   end
 
   # Build an unsaved JournalDetail representing this change.

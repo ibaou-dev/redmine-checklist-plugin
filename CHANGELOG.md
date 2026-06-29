@@ -4,6 +4,21 @@ All notable changes to the Redmine Checklist plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.2.1] — 2026-06-29
+
+**Patch — History tab fixes & delete-icon polish.**
+
+### Fixed
+- **History tab showed raw JSON** (`Translation missing: …field_checklist changed from [{…}] to […]`). The `IssuesHelper#details_to_strings` override was registered only in a `to_prepare` block, which does not run during the plugin-load prepare pass, so the override never applied on boot. It is now applied at require-time (like the Issue patch), so checklist changes render as readable lines again.
+- **History tab required a manual refresh (F5)** to show new entries after an AJAX check/uncheck/add/edit/delete. The issue **History** tab now refreshes in place after each checklist change.
+
+### Added
+- **Renames and deletions are now shown in history**, with id-aware diffing: a rename appears as a single *"renamed X → Y"* entry instead of a misleading delete + add; deletions render as a struck-through *"removed"* line.
+- Delete control now uses Redmine's native **trashcan** icon (in destructive red) instead of an `✕` glyph.
+
+### Tested
+- 52 Playwright e2e tests (full suite, real Chrome). New `bugfix-history` spec asserts the History tab is human-readable and contains **no** raw JSON / "Translation missing", verifies live refresh without reload, and covers delete/rename history plus the trashcan icon. The Phase 2 journal spec was hardened to reject JSON markers (the old assertion matched the item subject *inside* the broken JSON dump).
+
 ## [0.2.0] — 2026-06-28
 
 **Phase 2 — history, done-ratio, activity & search.**
@@ -47,5 +62,6 @@ First public release — **Phase 1 MVP: interactive issue checklists**.
 ### Notes
 - Built for Redmine 6.x; requires Redmine 5.0+. No proprietary gem dependencies.
 
+[0.2.1]: https://github.com/ibaou-dev/redmine-checklist-plugin/releases/tag/v0.2.1
 [0.2.0]: https://github.com/ibaou-dev/redmine-checklist-plugin/releases/tag/v0.2.0
 [0.1.0]: https://github.com/ibaou-dev/redmine-checklist-plugin/releases/tag/v0.1.0

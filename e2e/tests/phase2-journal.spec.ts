@@ -68,6 +68,14 @@ test('history: checking item creates journal entry in History tab', async ({ pag
   const journalDetail = historySection.locator('.journal-details li').filter({ hasText: 'Important task' });
   await expect(journalDetail).toBeVisible({ timeout: 7000 });
 
+  // Guard against the JSON-leak regression: the subject is a substring of the
+  // raw journal JSON, so "hasText" alone could match a broken dump. Assert the
+  // history contains NO JSON markers / missing-translation text.
+  const histText1 = await historySection.innerText();
+  for (const m of ['"is_section"', '{"id":', 'field_checklist', 'Translation missing']) {
+    expect(histText1, `History must not contain "${m}"`).not.toContain(m);
+  }
+
   // Also assert via rails runner that a journal was created
   const journalCount = getChecklistJournalCount(ISSUE_ID);
   expect(journalCount).toBeGreaterThanOrEqual(1);
@@ -107,6 +115,12 @@ test('history: adding an item creates journal entry with item subject', async ({
   // The journal entry should mention "New journal item" (as an added item)
   const journalDetail = historySection.locator('.journal-details li').filter({ hasText: 'New journal item' });
   await expect(journalDetail).toBeVisible({ timeout: 7000 });
+
+  // Guard against the JSON-leak regression (see note in test 1).
+  const histText2 = await historySection.innerText();
+  for (const m of ['"is_section"', '{"id":', 'field_checklist', 'Translation missing']) {
+    expect(histText2, `History must not contain "${m}"`).not.toContain(m);
+  }
 
   const journalCount = getChecklistJournalCount(ISSUE_ID);
   expect(journalCount).toBeGreaterThanOrEqual(1);

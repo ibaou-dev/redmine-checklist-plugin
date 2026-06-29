@@ -2,8 +2,9 @@
 
 A checklist plugin for Redmine issues — add ordered, checkable items to any issue, with progress tracking, sections, templates, per-item assignment, and mandatory-item enforcement. Open-source (GPL-3.0), dependency-light (no proprietary gems), built for **Redmine 6.x** (works on 5.0+).
 
-> **Status:** **v0.1.0** — Phase 1 MVP shipped and end-to-end tested. The interactive
-> single-issue checklist is fully working; later phases (history/done-ratio, templates,
+> **Status:** **v0.2.1** — Phases 1 & 2 shipped and end-to-end tested. The interactive
+> single-issue checklist, change history (done/reopened/added/removed/renamed), done-ratio
+> integration, activity feed and search are all working; later phases (templates,
 > mandatory-item enforcement, per-item assignment) are on the [roadmap](docs/planning/roadmap.md).
 
 ## Why
@@ -21,7 +22,7 @@ Real tasks contain small steps too lightweight for their own issue. This plugin 
 - ✅ Flat group-header sections with items visually grouped beneath them
 - ✅ Three-tier role permissions (view / done / manage), enforced in UI and on the server
 - ✅ REST API; plugin settings (progress bar, done ratio, change log)
-- ✅ Change history in the issue **History** tab (with consolidation) — *v0.2.0*
+- ✅ Change history in the issue **History** tab — done/reopened, added, removed and renamed, with consolidation and live (no-reload) refresh — *v0.2.0 / v0.2.1*
 - ✅ Done-ratio driven by checklist completion (issue-field mode) — *v0.2.0*
 - ✅ Activity feed + global search integration — *v0.2.0*
 
@@ -52,7 +53,7 @@ The plugin directory must be named `redmine_checklist`.
 
 ```bash
 cd /path/to/redmine/plugins
-tar xzf redmine_checklist-0.1.0.tar.gz   # extracts redmine_checklist/
+tar xzf redmine_checklist-0.2.1.tar.gz   # extracts redmine_checklist/
 cd /path/to/redmine
 bundle exec rake redmine:plugins:migrate RAILS_ENV=production NAME=redmine_checklist
 # restart Redmine

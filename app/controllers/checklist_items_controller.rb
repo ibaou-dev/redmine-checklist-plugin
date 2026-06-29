@@ -1,4 +1,12 @@
 class ChecklistItemsController < ApplicationController
+  # Helpers needed to re-render the issue History tab in the .js responses
+  # (include_all_helpers is off in Redmine, so these are not available by default).
+  helper :issues
+  helper :journals
+  helper :attachments
+  helper :custom_fields
+  helper :avatars
+
   before_action :find_issue
   before_action :find_checklist_item, only: [:update, :destroy, :done]
   before_action :authorize

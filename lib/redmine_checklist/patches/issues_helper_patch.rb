@@ -21,8 +21,7 @@ module RedmineChecklist
           begin
             was    = ChecklistHistory.from_json(detail.old_value)
             become = ChecklistHistory.from_json(detail.value)
-            history = ChecklistHistory.new(was, become)
-            diff   = history.diff
+            diff   = ChecklistHistory.new(was, become).diff
 
             diff[:done].each do |subject|
               if no_html
@@ -54,37 +53,47 @@ module RedmineChecklist
               end
             end
 
-            # If only structural changes (adds/deletes, no done/undone) → generic entry
-            if diff[:done].empty? && diff[:undone].empty?
-              added   = ChecklistHistory.from_json(detail.value).map(&:subject) -
-                        ChecklistHistory.from_json(detail.old_value).map(&:subject)
-              removed = ChecklistHistory.from_json(detail.old_value).map(&:subject) -
-                        ChecklistHistory.from_json(detail.value).map(&:subject)
-
-              added.each do |subject|
-                if no_html
-                  strings << "#{l(:label_checklist)}: + #{subject}"
-                else
-                  strings << content_tag(:span) do
-                    safe_join([
-                      content_tag(:strong, "#{l(:label_checklist)}: "),
-                      '+ ',
-                      subject
-                    ])
-                  end
+            diff[:added].each do |subject|
+              if no_html
+                strings << "#{l(:label_checklist_item_added)}: #{subject}"
+              else
+                strings << content_tag(:span, class: 'checklist-journal-added') do
+                  safe_join([
+                    content_tag(:strong, "#{l(:label_checklist)}: "),
+                    subject,
+                    ' ',
+                    content_tag(:span, "(#{l(:label_checklist_added)})", class: 'checklist-journal-note')
+                  ])
                 end
               end
+            end
 
-              removed.each do |subject|
-                if no_html
-                  strings << "#{l(:label_checklist)}: - #{subject}"
-                else
-                  strings << content_tag(:span) do
-                    safe_join([
-                      content_tag(:strong, "#{l(:label_checklist)}: "),
-                      content_tag(:del, subject)
-                    ])
-                  end
+            diff[:removed].each do |subject|
+              if no_html
+                strings << "#{l(:label_checklist_item_removed)}: #{subject}"
+              else
+                strings << content_tag(:span, class: 'checklist-journal-removed') do
+                  safe_join([
+                    content_tag(:strong, "#{l(:label_checklist)}: "),
+                    content_tag(:del, subject),
+                    ' ',
+                    content_tag(:span, "(#{l(:label_checklist_removed)})", class: 'checklist-journal-note')
+                  ])
+                end
+              end
+            end
+
+            diff[:renamed].each do |change|
+              if no_html
+                strings << "#{l(:label_checklist_item_renamed)}: #{change[:from]} #{l(:label_checklist_renamed_to)} #{change[:to]}"
+              else
+                strings << content_tag(:span, class: 'checklist-journal-renamed') do
+                  safe_join([
+                    content_tag(:strong, "#{l(:label_checklist)}: "),
+                    content_tag(:i, change[:from]),
+                    " #{l(:label_checklist_renamed_to)} ",
+                    content_tag(:i, change[:to])
+                  ])
                 end
               end
             end
@@ -97,4 +106,18 @@ module RedmineChecklist
       end
     end
   end
+end
+
+# Apply the patch at require-time (top level), mirroring issue_patch.rb.
+#
+# WHY NOT only in init.rb's to_prepare block: this init.rb is itself evaluated
+# *inside* the PluginLoader's to_prepare callback. A to_prepare block registered
+# during that pass does NOT run in the same prepare! pass (Rails compiles the
+# callback chain up-front), so a prepend deferred to that block never takes
+# effect on first boot — the History tab then falls back to Redmine's default
+# detail rendering ("Translation missing: <locale>.field_checklist changed
+# from <json> to <json>"). Prepending here (require-time) guarantees it is
+# applied on first boot, exactly like Issue.include in issue_patch.rb.
+unless IssuesHelper.ancestors.include?(RedmineChecklist::Patches::IssuesHelperPatch)
+  IssuesHelper.prepend RedmineChecklist::Patches::IssuesHelperPatch
 end
