@@ -116,6 +116,70 @@
   }
 
   /* -----------------------------------------------------------------------
+   * wireItemDetails — expand/collapse + save/cancel for the detail panel
+   * --------------------------------------------------------------------- */
+  function wireItemDetails(li) {
+    var expandBtn  = li.querySelector('.checklist-expand');
+    var detailDiv  = li.querySelector('.checklist-item-details');
+    if (!expandBtn || !detailDiv) return;
+
+    // Toggle chevron glyph and panel visibility
+    function openPanel() {
+      detailDiv.style.display = '';
+      expandBtn.setAttribute('aria-expanded', 'true');
+      expandBtn.innerHTML = '&#9660;'; // ▾
+    }
+
+    function closePanel() {
+      detailDiv.style.display = 'none';
+      expandBtn.setAttribute('aria-expanded', 'false');
+      expandBtn.innerHTML = '&#9658;'; // ▸
+    }
+
+    expandBtn.addEventListener('click', function () {
+      if (expandBtn.getAttribute('aria-expanded') === 'true') {
+        closePanel();
+      } else {
+        openPanel();
+      }
+    });
+
+    // Cancel button
+    var cancelBtn = detailDiv.querySelector('.checklist-detail-cancel');
+    if (cancelBtn) {
+      cancelBtn.addEventListener('click', function () {
+        closePanel();
+      });
+    }
+
+    // Save button — PATCH update with detail fields
+    var saveBtn = detailDiv.querySelector('.checklist-detail-save');
+    if (saveBtn) {
+      saveBtn.addEventListener('click', function () {
+        var url        = detailDiv.dataset.url;
+        var assigneeEl = detailDiv.querySelector('.checklist-detail-assignee');
+        var dueEl      = detailDiv.querySelector('.checklist-detail-due');
+        var mandEl     = detailDiv.querySelector('.checklist-detail-mandatory');
+
+        var data = {};
+        if (assigneeEl) { data['checklist_item[assignee_id]']  = assigneeEl.value; }
+        if (dueEl)      { data['checklist_item[due_date]']     = dueEl.value; }
+        if (mandEl)     { data['checklist_item[is_mandatory]'] = mandEl.checked ? '1' : '0'; }
+
+        $.ajax({
+          url:      url,
+          type:     'PATCH',
+          data:     data,
+          headers:  { 'X-CSRF-Token': csrfToken() },
+          dataType: 'script'
+          // update.js.erb replaces the <li> and calls initChecklistRow,
+          // so the panel collapses automatically (new row starts closed).
+        });
+      });
+    }
+  }
+
+  /* -----------------------------------------------------------------------
    * initChecklistRow — wire up a single <li> after insert/replace
    * --------------------------------------------------------------------- */
   window.initChecklistRow = function (li) {
@@ -140,6 +204,9 @@
 
     // Inline edit
     wireInlineEdit(li);
+
+    // Detail panel (expand chevron + save/cancel)
+    wireItemDetails(li);
   };
 
   /* -----------------------------------------------------------------------

@@ -4,6 +4,20 @@ All notable changes to the Redmine Checklist plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.4.0] — 2026-06-29
+
+**Phase 4 — Mandatory-item enforcement & per-item assignment.**
+
+### Added
+- **Mandatory items**: any task can be marked *mandatory*. Mandatory items show a red `*` flag.
+- **Status-transition enforcement**: an admin enables enforcement and picks (in the plugin settings) which issue statuses are **blocked until all mandatory checklist items are checked**. Enforced at the `Issue` validation layer, so it holds for the issue form, **bulk edit, and the REST API** — the transition is refused with a clear error while mandatory items remain incomplete.
+- **Per-item assignment**: each task row has an expandable **detail panel** to set an **assignee** (from the issue's assignable users), a **due date**, and the **mandatory** flag, saved via AJAX.
+- **Per-item meta**: assignee (`@name`) and due date are shown inline on the row; overdue, not-yet-done due dates are highlighted in red.
+- **Completion audit**: completed items show a `✓` with a "Completed by *user* on *date*" tooltip (stamped via `completed_by` / `completed_at`).
+
+### Tested
+- 59 Playwright e2e tests (real Chrome). New `phase4-enforcement` spec verifies the status transition is blocked with an incomplete mandatory item and allowed once it is checked (through the real edit form + DB), the detail panel sets mandatory/due/assignee, and read-only users see the flag but no edit control.
+
 ## [0.3.1] — 2026-06-29
 
 **Patch — template UI polish.**
@@ -91,6 +105,7 @@ First public release — **Phase 1 MVP: interactive issue checklists**.
 ### Notes
 - Built for Redmine 6.x; requires Redmine 5.0+. No proprietary gem dependencies.
 
+[0.4.0]: https://github.com/ibaou-dev/redmine-checklist-plugin/releases/tag/v0.4.0
 [0.3.1]: https://github.com/ibaou-dev/redmine-checklist-plugin/releases/tag/v0.3.1
 [0.3.0]: https://github.com/ibaou-dev/redmine-checklist-plugin/releases/tag/v0.3.0
 [0.2.1]: https://github.com/ibaou-dev/redmine-checklist-plugin/releases/tag/v0.2.1

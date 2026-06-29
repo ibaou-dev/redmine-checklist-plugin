@@ -19,3 +19,24 @@
                     id: 'settings_save_log' %>
   <label for="settings_save_log"><%= l(:setting_save_log) %></label>
 </p>
+<p>
+  <%= hidden_field_tag 'settings[enforce_mandatory]', '0', id: nil %>
+  <%= check_box_tag 'settings[enforce_mandatory]', '1',
+                    ['true', '1', true].include?(settings['enforce_mandatory']),
+                    id: 'settings_enforce_mandatory' %>
+  <label for="settings_enforce_mandatory"><%= l(:setting_enforce_mandatory) %></label>
+</p>
+<p>
+  <label for="settings_enforce_statuses"><%= l(:setting_enforce_statuses) %></label><br>
+  <input type="hidden" name="settings[enforce_statuses][]" value="">
+  <%= select_tag 'settings[enforce_statuses][]',
+                 options_from_collection_for_select(
+                   IssueStatus.sorted,
+                   :id,
+                   :name,
+                   Array(settings['enforce_statuses']).map(&:to_s)
+                 ),
+                 multiple: true,
+                 size: 6,
+                 id: 'settings_enforce_statuses' %>
+</p>

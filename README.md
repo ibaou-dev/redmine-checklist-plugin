@@ -2,11 +2,11 @@
 
 A checklist plugin for Redmine issues — add ordered, checkable items to any issue, with progress tracking, sections, templates, per-item assignment, and mandatory-item enforcement. Open-source (GPL-3.0), dependency-light (no proprietary gems), built for **Redmine 6.x** (works on 5.0+).
 
-> **Status:** **v0.3.1** — Phases 1–3 shipped and end-to-end tested. The interactive
-> single-issue checklist, change history (done/reopened/added/removed/renamed), done-ratio
-> integration, activity feed, search, and reusable **templates** (global + per-project,
-> apply-to-issue, tracker auto-apply) are all working; later phases (mandatory-item
-> enforcement, per-item assignment) are on the [roadmap](docs/planning/roadmap.md).
+> **Status:** **v0.4.0** — Phases 1–4 shipped and end-to-end tested. The interactive
+> single-issue checklist, change history, done-ratio integration, activity feed, search,
+> reusable **templates**, **mandatory-item enforcement** (blocking status transitions) and
+> **per-item assignment** (assignee/due date) are all working. Remaining: issue-list
+> completion filter, full i18n and v1.0 polish — see the [roadmap](docs/planning/roadmap.md).
 
 ## Why
 
@@ -27,10 +27,10 @@ Real tasks contain small steps too lightweight for their own issue. This plugin 
 - ✅ Done-ratio driven by checklist completion (issue-field mode) — *v0.2.0*
 - ✅ Activity feed + global search integration — *v0.2.0*
 - ✅ Templates — global + per-project, categories, apply-to-issue, tracker auto-apply — *v0.3.0*
+- ✅ Mandatory items that block configured status transitions; per-item assignee, due date & completion audit — *v0.4.0*
 
 **Planned (see [roadmap](docs/planning/roadmap.md)):**
 
-- ⏳ Mandatory items that block status transitions; per-item assignee/due date (Phase 4)
 - ⏳ Issue-list completion filter, full i18n, v1.0 polish (Phase 5)
 
 See the [feature matrix](docs/product/feature-matrix.md) for full scope and priorities.
@@ -54,7 +54,7 @@ The plugin directory must be named `redmine_checklist`.
 
 ```bash
 cd /path/to/redmine/plugins
-tar xzf redmine_checklist-0.3.1.tar.gz   # extracts redmine_checklist/
+tar xzf redmine_checklist-0.4.0.tar.gz   # extracts redmine_checklist/
 cd /path/to/redmine
 bundle exec rake redmine:plugins:migrate RAILS_ENV=production NAME=redmine_checklist
 # restart Redmine

@@ -2,16 +2,18 @@ Redmine::Plugin.register :redmine_checklist do
   name        'Redmine Checklist'
   author      'ibaou-dev'
   description 'Checklist management for Redmine issues'
-  version     '0.3.1'
+  version     '0.4.0'
   url         'https://github.com/ibaou-dev/redmine-checklist-plugin'
   author_url  'https://github.com/ibaou-dev'
 
   requires_redmine version_or_higher: '5.0'
 
   settings default: {
-    'show_progress_bar' => true,
-    'affect_done_ratio' => false,
-    'save_log'          => true
+    'show_progress_bar'  => true,
+    'affect_done_ratio'  => false,
+    'save_log'           => true,
+    'enforce_mandatory'  => false,
+    'enforce_statuses'   => []
   }, partial: 'settings/checklist/settings'
 
   Redmine::AccessControl.map do |map|

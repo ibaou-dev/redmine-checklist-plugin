@@ -7,6 +7,7 @@ module RedmineChecklist
                       foreign_key: :issue_id
 
         base.after_create :apply_default_checklist_template
+        base.validate :checklist_mandatory_items_satisfied
       end
 
       # Auto-apply the default checklist template on issue creation (silent — no journal).
@@ -15,6 +16,28 @@ module RedmineChecklist
         template&.apply_to(self, User.current)
       rescue StandardError => e
         Rails.logger.error("checklist auto-apply error: #{e.message}")
+      end
+
+      # Block status transitions when enforcement is enabled and mandatory items
+      # are incomplete. Only fires when status_id is changing (new records count
+      # as a change) and the target status is in the blocked list.
+      def checklist_mandatory_items_satisfied
+        s = Setting.plugin_redmine_checklist
+        return unless ['1', 'true', true].include?(s['enforce_mandatory'])
+
+        statuses = Array(s['enforce_statuses']).reject(&:blank?).map(&:to_s)
+        return if statuses.empty?
+
+        # Only enforce when transitioning INTO a blocked status.
+        # status_id_changed? is true for new records too.
+        return unless status_id_changed? && statuses.include?(status_id.to_s)
+
+        incomplete = checklist_items.where(is_mandatory: true, is_section: false, is_done: false).count
+        return if incomplete.zero?
+
+        errors.add(:base, l(:error_checklist_mandatory_incomplete, count: incomplete))
+      rescue StandardError => e
+        Rails.logger.error("checklist mandatory validation error: #{e.message}")
       end
 
       # Progress over checklist *tasks* (sections excluded), as a hash

@@ -63,13 +63,13 @@ Goal: a fully usable single-issue checklist.
 
 **Exit:** a saved template can be applied manually and auto-applied per tracker on new issues. ✔ Verified e2e (56 tests, real Chrome) + independent behavioral checks (template_text parsing, default_for resolution, auto-apply on real issue creation, apply wiring, permission gating). Shipped as **v0.3.0**.
 
-## Phase 4 — Enforcement & assignment
+## Phase 4 — Enforcement & assignment ✅ (done — v0.4.0)
 
-- Mandatory items (`is_mandatory`) block configured status transitions, enforced at the `Issue` validation layer (holds for UI, bulk edit, and API).
-- Per-item assignee + due date display and editing.
-- Completion audit (`completed_by`, `completed_at`) surfaced in the UI.
+- ✅ Mandatory items (`is_mandatory`) block configured status transitions, enforced at the `Issue` validation layer (holds for the issue form, bulk edit, and API). Enforcement is a global plugin setting: enable it + pick the guarded statuses. Blocks the *transition* into a guarded status (`status_id_changed?`).
+- ✅ Per-item assignee + due date editing via an expandable detail row; assignee/due shown inline; overdue not-done due dates highlighted.
+- ✅ Completion audit (`completed_by`, `completed_at`) surfaced as a `✓` with a "Completed by … on …" tooltip.
 
-**Exit:** moving an issue to a guarded status with unchecked mandatory items is rejected with a clear error, through every code path.
+**Exit:** moving an issue to a guarded status with unchecked mandatory items is rejected with a clear error, through every code path. ✔ Verified e2e (59 tests) + independent checks through the real edit form and DB. Shipped as **v0.4.0**.
 
 ## Phase 5 — v1.0 polish
 

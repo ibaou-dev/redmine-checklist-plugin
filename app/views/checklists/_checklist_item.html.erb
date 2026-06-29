@@ -42,10 +42,34 @@
                         method: :patch
                       } %>
 
-    <span class="checklist-item-text"><%= item.subject %></span>
+    <span class="checklist-item-text"><%= item.subject %></span><%
+    %><% if item.mandatory? %><span class="checklist-mandatory-flag" title="<%= l(:label_checklist_required) %>">*</span><% end %>
+
+    <%# Meta line: assignee / due date / completion audit %>
+    <% if item.assignee || item.due_date || (item.done? && item.completed_at) %>
+      <span class="checklist-item-meta">
+        <% if item.assignee %>
+          <span class="checklist-assignee">@<%= item.assignee.name %></span>
+        <% end %>
+        <% if item.due_date %>
+          <% overdue = item.due_date < Date.today && !item.done? %>
+          <span class="checklist-due<%= ' overdue' if overdue %>"><%= format_date(item.due_date) %></span>
+        <% end %>
+        <% if item.done? && item.completed_at %>
+          <span class="checklist-completed-meta"
+                title="<%= l(:label_checklist_completed_by,
+                              user: item.completed_by&.name,
+                              date: format_time(item.completed_at)) %>">&#10003;</span>
+        <% end %>
+      </span>
+    <% end %>
 
     <% if can_manage %>
       <span class="checklist-item-actions">
+        <button type="button"
+                class="checklist-expand"
+                aria-expanded="false"
+                aria-label="<%= l(:label_checklist_item_details) %>">&#9658;</button>
         <a href="#"
            class="checklist-edit"
            aria-label="<%= l(:label_checklist_edit_item) %>"
@@ -57,6 +81,42 @@
                     class: 'checklist-delete',
                     'aria-label': l(:button_delete) %>
       </span>
+
+      <%# Detail panel — expandable, starts hidden %>
+      <div class="checklist-item-details"
+           style="display:none"
+           data-url="<%= issue_checklist_item_path(@issue, item) %>">
+
+        <label>
+          <%= l(:field_assigned_to) %>
+          <select class="checklist-detail-assignee" name="checklist_item[assignee_id]">
+            <option value=""></option>
+            <% @issue.assignable_users.each do |u| %>
+              <option value="<%= u.id %>"<%= ' selected' if item.assignee_id == u.id %>><%= u.name %></option>
+            <% end %>
+          </select>
+        </label>
+
+        <label>
+          <%= l(:field_due_date) %>
+          <input type="date"
+                 class="checklist-detail-due"
+                 name="checklist_item[due_date]"
+                 value="<%= item.due_date %>">
+        </label>
+
+        <label>
+          <input type="checkbox"
+                 class="checklist-detail-mandatory"
+                 name="checklist_item[is_mandatory]"
+                 value="1"
+                 <%= 'checked' if item.mandatory? %>>
+          <%= l(:field_is_mandatory) %>
+        </label>
+
+        <button type="button" class="checklist-detail-save checklist-add-btn"><%= l(:button_save) %></button>
+        <button type="button" class="checklist-detail-cancel"><%= l(:button_cancel) %></button>
+      </div>
     <% end %>
   </li>
 <% end %>

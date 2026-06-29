@@ -146,13 +146,17 @@ class ChecklistItemsController < ApplicationController
     render_404
   end
 
-  # Params for manage_checklists actions (create/update): subject + is_section
+  # Params for the create action: subject, is_section, position only
+  # (assignee/due/mandatory are set via the detail-panel update, not on create)
   def checklist_item_params
     params.require(:checklist_item).permit(:subject, :is_section, :position)
   end
 
-  # Alias used in create (same set)
-  alias manage_checklist_item_params checklist_item_params
+  # Params for the update action (manage_checklists): includes detail-panel fields
+  def manage_checklist_item_params
+    params.require(:checklist_item).permit(:subject, :is_section, :position,
+                                           :is_mandatory, :assignee_id, :due_date)
+  end
 
   # -------------------------------------------------------------------------
   # Journal recording

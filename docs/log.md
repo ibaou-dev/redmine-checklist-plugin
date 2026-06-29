@@ -2,6 +2,13 @@
 
 All notable changes to this docs bundle.
 
+## 2026-06-29 — Phase 4 shipped (v0.4.0)
+
+- **Phase 4 complete and released as v0.4.0.** Mandatory items + status-transition enforcement (global setting: enable + pick guarded statuses; validated on `Issue`, so UI/bulk/API all blocked when transitioning into a guarded status with incomplete mandatory items). Per-item assignee + due date via an expandable detail row; inline meta (assignee/`@name`, due, overdue red); completion audit (`✓` + "completed by … on …" tooltip from `completed_by`/`completed_at`).
+- Validation gates on `status_id_changed?` + status in the configured list, then counts incomplete mandatory non-section items — avoids false positives on unrelated edits and on issue creation (no items yet).
+- Independent verification through the real edit form + DB confirmed the block holds and lifts once the mandatory item is checked. Note: the detail-panel assignee `<select>` is Prism-enhanced into a typeahead (see [[reference-phase3-gotchas]]); e2e sets the native value.
+- 59 Playwright e2e tests (real Chrome). New `phase4-enforcement` spec.
+
 ## 2026-06-29 — Patch v0.3.1 (template UI polish)
 
 - Delete icon: dropped the forced red fill so the trashcan inherits the theme colour and matches Redmine's native issue-delete icon (same `#icon--del` sprite, outline style).
