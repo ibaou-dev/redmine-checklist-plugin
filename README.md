@@ -2,7 +2,7 @@
 
 A checklist plugin for Redmine issues — add ordered, checkable items to any issue, with progress tracking, sections, templates, per-item assignment, and mandatory-item enforcement. Open-source (GPL-3.0), dependency-light (no proprietary gems), built for **Redmine 6.x** (works on 5.0+).
 
-> **Status:** **v0.3.0** — Phases 1–3 shipped and end-to-end tested. The interactive
+> **Status:** **v0.3.1** — Phases 1–3 shipped and end-to-end tested. The interactive
 > single-issue checklist, change history (done/reopened/added/removed/renamed), done-ratio
 > integration, activity feed, search, and reusable **templates** (global + per-project,
 > apply-to-issue, tracker auto-apply) are all working; later phases (mandatory-item
@@ -54,7 +54,7 @@ The plugin directory must be named `redmine_checklist`.
 
 ```bash
 cd /path/to/redmine/plugins
-tar xzf redmine_checklist-0.3.0.tar.gz   # extracts redmine_checklist/
+tar xzf redmine_checklist-0.3.1.tar.gz   # extracts redmine_checklist/
 cd /path/to/redmine
 bundle exec rake redmine:plugins:migrate RAILS_ENV=production NAME=redmine_checklist
 # restart Redmine

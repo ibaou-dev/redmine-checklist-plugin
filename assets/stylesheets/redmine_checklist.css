@@ -115,7 +115,6 @@
 }
 
 .checklist-delete {
-  color: var(--danger-color, #c0392b);
   text-decoration: none;
   font-size: 0.85em;
   padding: 0 0.25em;
@@ -190,20 +189,14 @@
   background: rgba(192, 57, 43, 0.05);
 }
 
-/* Delete control uses Redmine's trashcan sprite icon. Set fill explicitly
-   (not via currentColor) so the destructive red survives theme link-color
-   rules like `#content a { color: ... }` that outrank a single-class selector. */
+/* Delete control uses Redmine's native trashcan sprite icon (#icon--del),
+   styled exactly like core action icons — it inherits currentColor rather than
+   forcing red, so it matches the issue delete icon. */
 .checklist-delete .icon-svg,
 .checklist-delete svg {
-  width: 15px;
-  height: 15px;
-  vertical-align: text-bottom;
-  fill: var(--danger-color, #c0392b);
-}
-
-.checklist-delete:hover .icon-svg,
-.checklist-delete:hover svg {
-  fill: #a5281b;
+  width: 16px;
+  height: 16px;
+  vertical-align: middle;
 }
 
 /* History tab: muted parenthetical note after each checklist change */

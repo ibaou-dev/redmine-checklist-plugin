@@ -2,7 +2,7 @@ Redmine::Plugin.register :redmine_checklist do
   name        'Redmine Checklist'
   author      'ibaou-dev'
   description 'Checklist management for Redmine issues'
-  version     '0.3.0'
+  version     '0.3.1'
   url         'https://github.com/ibaou-dev/redmine-checklist-plugin'
   author_url  'https://github.com/ibaou-dev'
 

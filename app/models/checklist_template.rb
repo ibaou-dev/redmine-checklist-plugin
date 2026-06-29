@@ -38,18 +38,22 @@ class ChecklistTemplate < ApplicationRecord
   end
 
   # Parse the textarea: one entry per line.
-  # Lines matching /\A#\s+(.*)/ → section; everything else → item.
-  # Assigns sequential positions and stores as JSON.
+  # A line starting with "#" is a section header — the space after "#" is
+  # OPTIONAL ("#Setup" and "# Setup" both work). A line that is only "#" (no
+  # subject) is ignored. Blank lines are skipped. Sequential positions, JSON.
   def template_text=(text)
     return self.template_items = '[]' if text.blank?
 
     parsed = text.to_s.split("\n").each_with_index.filter_map do |line, idx|
-      next if line.strip.empty?
+      stripped = line.strip
+      next if stripped.empty?
 
-      if (m = line.match(/\A#\s+(.*)/))
-        { 'subject' => m[1].strip, 'is_section' => true,  'position' => idx }
+      if (m = stripped.match(/\A#\s*(.*)\z/))
+        subject = m[1].strip
+        next if subject.empty? # a lone "#" is not a section
+        { 'subject' => subject, 'is_section' => true,  'position' => idx }
       else
-        { 'subject' => line.strip,  'is_section' => false, 'position' => idx }
+        { 'subject' => stripped, 'is_section' => false, 'position' => idx }
       end
     end
 

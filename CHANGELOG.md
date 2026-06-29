@@ -4,6 +4,18 @@ All notable changes to the Redmine Checklist plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.3.1] — 2026-06-29
+
+**Patch — template UI polish.**
+
+### Fixed
+- Delete (trashcan) icon now matches Redmine's **native issue-delete icon** (neutral outline, inherits the theme colour) instead of a forced solid red.
+- Missing translations on the template **categories** admin pages (`button_new`, `field_position`) — added proper keys.
+- Template **section parsing** now accepts `#Section` as well as `# Section` (the space after `#` is optional); a line containing only `#` is ignored. Hint text updated to match.
+
+### Changed
+- Template **categories** moved under the templates section: `/checklist_templates/categories` (was the flat `/checklist_template_categories`), for a tidier admin URL hierarchy.
+
 ## [0.3.0] — 2026-06-29
 
 **Phase 3 — Checklist templates.**
@@ -79,6 +91,7 @@ First public release — **Phase 1 MVP: interactive issue checklists**.
 ### Notes
 - Built for Redmine 6.x; requires Redmine 5.0+. No proprietary gem dependencies.
 
+[0.3.1]: https://github.com/ibaou-dev/redmine-checklist-plugin/releases/tag/v0.3.1
 [0.3.0]: https://github.com/ibaou-dev/redmine-checklist-plugin/releases/tag/v0.3.0
 [0.2.1]: https://github.com/ibaou-dev/redmine-checklist-plugin/releases/tag/v0.2.1
 [0.2.0]: https://github.com/ibaou-dev/redmine-checklist-plugin/releases/tag/v0.2.0

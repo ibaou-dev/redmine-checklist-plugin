@@ -10,9 +10,17 @@ resources :issues do
   end
 end
 
-# Global (admin) template + category management
+# Global (admin) template + category management.
+# Categories live UNDER the templates section (/checklist_templates/categories/...)
+# rather than as a flat sibling. Declared before `resources :checklist_templates`
+# so /checklist_templates/categories does not get captured as a template :show.
+# The `as:` keeps the existing checklist_template_category(_ies) route helpers.
+scope 'checklist_templates' do
+  resources :categories,
+            controller: 'checklist_template_categories',
+            as: 'checklist_template_categories'
+end
 resources :checklist_templates
-resources :checklist_template_categories
 
 # Project-scoped template management
 resources :projects do

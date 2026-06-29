@@ -2,6 +2,13 @@
 
 All notable changes to this docs bundle.
 
+## 2026-06-29 — Patch v0.3.1 (template UI polish)
+
+- Delete icon: dropped the forced red fill so the trashcan inherits the theme colour and matches Redmine's native issue-delete icon (same `#icon--del` sprite, outline style).
+- Fixed missing i18n on the categories admin pages (`button_new` and `field_position` are not core keys → added `label_checklist_template_category_new` + `field_position`).
+- Template categories moved under the templates section: `/checklist_templates/categories` (routes via a `scope 'checklist_templates'` with `as:` to preserve helper names); the flat `/checklist_template_categories` now 404s.
+- Section parsing accepts `#Section` as well as `# Section` (space optional); lone `#` ignored; hint updated.
+
 ## 2026-06-29 — Phase 3 shipped (v0.3.0)
 
 - **Phase 3 complete and released as v0.3.0.** Checklist templates: global (admin) + per-project management, optional categories, apply-to-issue (logged in History), and silent tracker auto-apply on issue creation (project default → global default). New `manage_checklist_templates` permission. Item editor uses a one-line-per-item textarea (`# ` prefix = section).
