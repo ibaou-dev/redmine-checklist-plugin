@@ -1,0 +1,41 @@
+<div class="contextual">
+  <%= link_to l(:button_new), new_checklist_template_category_path, class: 'icon icon-add' %>
+</div>
+
+<h2><%= l(:label_checklist_template_category_plural) %></h2>
+
+<% if @categories.empty? %>
+  <p class="nodata"><%= l(:label_no_data) %></p>
+<% else %>
+  <table class="list">
+    <thead>
+      <tr>
+        <th><%= l(:field_name) %></th>
+        <th><%= l(:field_position) %></th>
+        <th><%= l(:label_checklist_template_plural) %></th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @categories.each do |cat| %>
+        <tr class="<%= cycle('odd', 'even') %>">
+          <td><%= cat.name %></td>
+          <td><%= cat.position %></td>
+          <td><%= cat.checklist_templates.size %></td>
+          <td class="buttons">
+            <%= link_to l(:button_edit),
+                        edit_checklist_template_category_path(cat),
+                        class: 'icon icon-edit' %>
+            <%= link_to l(:button_delete),
+                        checklist_template_category_path(cat),
+                        method: :delete,
+                        data: { confirm: l(:text_are_you_sure) },
+                        class: 'icon icon-del' %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% end %>
+
+<p><%= link_to "&#8592; #{l(:label_checklist_template_plural)}", checklist_templates_path %></p>

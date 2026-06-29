@@ -2,6 +2,13 @@
 
 All notable changes to this docs bundle.
 
+## 2026-06-29 — Phase 3 shipped (v0.3.0)
+
+- **Phase 3 complete and released as v0.3.0.** Checklist templates: global (admin) + per-project management, optional categories, apply-to-issue (logged in History), and silent tracker auto-apply on issue creation (project default → global default). New `manage_checklist_templates` permission. Item editor uses a one-line-per-item textarea (`# ` prefix = section).
+- Models `ChecklistTemplate` / `ChecklistTemplateCategory` over the pre-existing tables; dual-scope `ChecklistTemplatesController` (admin vs `project_id`); auto-apply via `Issue after_create`; `apply_template` action on the checklist-items controller.
+- Independent verification caught: the apply `.js.erb` called non-existent JS helpers (fixed to `initChecklistRow` + new `window.reinitChecklistSortable`); `error_messages_for :sym, object:` mis-call (→ `error_messages_for @obj`); missing form-field ids; and a stale-reload hazard where the issue-show view hook silently stops firing after init.rb/route changes until a **full container restart**. The Prism theme enhances `<select>` into a typeahead — not a bug; e2e drives the typeahead.
+- 56 Playwright e2e tests (real Chrome). New `phase3-templates` spec.
+
 ## 2026-06-29 — Patch v0.2.1 (History tab fixes & delete-icon polish)
 
 - **Fixed History tab rendering raw JSON** (`Translation missing: …field_checklist changed from [{…}] to […]`). Root cause: the `IssuesHelper#details_to_strings` override was registered only in a `to_prepare` block, which does not execute during the plugin-load prepare pass — so the prepend never applied on boot. Now applied at require-time (like the Issue patch). See `reference-to-prepare-prepend-gotcha`.

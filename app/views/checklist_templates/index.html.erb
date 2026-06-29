@@ -1,0 +1,69 @@
+<% if @project
+     content_for :header_tags do
+       stylesheet_link_tag 'redmine_checklist', plugin: 'redmine_checklist'
+     end
+   end %>
+
+<div class="contextual">
+  <%= link_to l(:label_checklist_template_new),
+              @project ? new_project_checklist_template_path(@project)
+                       : new_checklist_template_path,
+              class: 'icon icon-add' %>
+  <% unless @project %>
+    <%= link_to l(:label_checklist_template_category_plural),
+                checklist_template_categories_path,
+                class: 'icon icon-list' %>
+  <% end %>
+</div>
+
+<h2><%= l(:label_checklist_template_plural) %></h2>
+
+<% if @templates.empty? %>
+  <p class="nodata"><%= l(:label_no_data) %></p>
+<% else %>
+  <table class="list checklist-templates-list">
+    <thead>
+      <tr>
+        <th><%= l(:field_name) %></th>
+        <th><%= l(:label_checklist_template_category) %></th>
+        <th><%= l(:field_tracker) %></th>
+        <th><%= l(:label_checklist_template_body) %></th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @templates.each_with_index do |tmpl, i| %>
+        <tr class="<%= cycle('odd', 'even') %>">
+          <td>
+            <%= tmpl.name %>
+            <% if tmpl.is_default? %>
+              <span class="badge" title="<%= l(:field_is_default) %>">&#9733;</span>
+            <% end %>
+          </td>
+          <td><%= tmpl.category&.name %></td>
+          <td>
+            <%= tmpl.tracker&.name %>
+            <% if tmpl.tracker && tmpl.is_default? %>
+              <small class="checklist-template-default-hint">
+                (<%= l(:label_checklist_template_default_for_tracker) %>)
+              </small>
+            <% end %>
+          </td>
+          <td><%= tmpl.items.size %></td>
+          <td class="buttons">
+            <%= link_to l(:button_edit),
+                        @project ? edit_project_checklist_template_path(@project, tmpl)
+                                 : edit_checklist_template_path(tmpl),
+                        class: 'icon icon-edit' %>
+            <%= link_to l(:button_delete),
+                        @project ? project_checklist_template_path(@project, tmpl)
+                                 : checklist_template_path(tmpl),
+                        method: :delete,
+                        data: { confirm: l(:text_are_you_sure) },
+                        class: 'icon icon-del' %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% end %>

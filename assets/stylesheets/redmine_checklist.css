@@ -211,3 +211,35 @@
   color: var(--secondary-text-color, #888);
   font-size: 0.9em;
 }
+
+/* Template bar: "Apply template" dropdown + button row */
+.checklist-template-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4em;
+  margin-top: 0.35em;
+  align-items: center;
+}
+
+.checklist-template-select {
+  flex: 1;
+  min-width: 160px;
+  padding: 0.3em 0.5em;
+  font-size: 0.9em;
+  border: 1px solid var(--border-color, #ddd);
+  border-radius: 3px;
+  background: var(--bg-color, #fff);
+  color: var(--text-color, #333);
+}
+
+/* Admin template list: hint text under tracker selector */
+.checklist-template-default-hint {
+  color: var(--secondary-text-color, #888);
+  font-size: 0.85em;
+}
+
+/* Template textarea */
+.checklist-template-textarea {
+  font-family: monospace;
+  font-size: 0.9em;
+}

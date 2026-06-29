@@ -11,7 +11,7 @@ class ChecklistItemsController < ApplicationController
   before_action :find_checklist_item, only: [:update, :destroy, :done]
   before_action :authorize
 
-  accept_api_auth :index, :create, :update, :destroy, :reorder, :done
+  accept_api_auth :index, :create, :update, :destroy, :reorder, :done, :apply_template
 
   # GET /issues/:issue_id/checklist_items(.json)
   # Requires: view_checklists
@@ -92,6 +92,29 @@ class ChecklistItemsController < ApplicationController
     respond_to do |format|
       format.js
       format.json { head :no_content }
+    end
+  end
+
+  # POST /issues/:issue_id/checklist_items/apply_template(.js|.json)
+  # Requires: manage_checklists (apply_template is in its action list)
+  def apply_template
+    template = ChecklistTemplate.available_for(@project).find_by(id: params[:template_id])
+    return render_404 unless template
+
+    snapshot_before = @issue.checklist_items.ordered.to_a
+    template.apply_to(@issue, User.current)
+    record_checklist_journal(snapshot_before)
+    ChecklistItem.recalc_done_ratio(@issue.id)
+
+    # Reload checklist state for the JS response
+    @checklist_items = @issue.checklist_items.reload.ordered
+    @can_done   = User.current.allowed_to?(:done_checklists,   @project) ||
+                  User.current.allowed_to?(:manage_checklists, @project)
+    @can_manage = User.current.allowed_to?(:manage_checklists, @project)
+
+    respond_to do |format|
+      format.js
+      format.json { head :ok }
     end
   end
 

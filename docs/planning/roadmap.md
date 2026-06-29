@@ -52,15 +52,16 @@ Goal: a fully usable single-issue checklist.
 
 **Exit:** checking items shows up in issue history and activity; done ratio reflects checklist completion when enabled. ✔ Verified e2e (46 tests, two deterministic runs) + independent behavioral checks (journal/consolidation/done-ratio/search/activity). Shipped as **v0.2.0**.
 
-## Phase 3 — Templates
+## Phase 3 — Templates ✅ (done — v0.3.0)
 
-- `ChecklistTemplate` CRUD UI (admin + project scope).
-- Template categories.
-- Apply a template to an issue (adds its items).
-- Auto-apply default template on issue creation when tracker matches.
-- REST endpoints for templates.
+- ✅ `ChecklistTemplate` CRUD UI — global (admin) **and** per-project scope (`manage_checklist_templates` permission; project *Checklist templates* tab).
+- ✅ Template categories (admin-managed).
+- ✅ Apply a template to an issue (appends its items; logged in History).
+- ✅ Auto-apply default template on issue creation when the tracker matches (project default → global default; silent, no journal).
+- ✅ REST endpoints (`GET /checklist_templates(.json)`, `POST .../checklist_items/apply_template`).
+- ✅ One-item-per-line textarea editor (`# ` prefix = section header).
 
-**Exit:** a saved template can be applied manually and auto-applied per tracker on new issues.
+**Exit:** a saved template can be applied manually and auto-applied per tracker on new issues. ✔ Verified e2e (56 tests, real Chrome) + independent behavioral checks (template_text parsing, default_for resolution, auto-apply on real issue creation, apply wiring, permission gating). Shipped as **v0.3.0**.
 
 ## Phase 4 — Enforcement & assignment
 

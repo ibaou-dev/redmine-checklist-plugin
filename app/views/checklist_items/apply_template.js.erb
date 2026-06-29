@@ -1,0 +1,45 @@
+// apply_template.js.erb — replace entire checklist list + progress after template apply
+(function() {
+  var list = document.getElementById('checklist-items');
+  if (list) {
+    var html = '';
+    <% @checklist_items.each do |item| %>
+      html += <%= raw render('checklists/checklist_item',
+                             item:       item,
+                             can_done:   @can_done,
+                             can_manage: @can_manage).to_json %>;
+    <% end %>
+    list.innerHTML = html;
+    // Re-wire each row (done checkbox + inline edit) and the drag-reorder sortable.
+    list.querySelectorAll('.checklist-item').forEach(function (li) {
+      if (typeof window.initChecklistRow === 'function') { window.initChecklistRow(li); }
+    });
+    if (typeof window.reinitChecklistSortable === 'function') { window.reinitChecklistSortable(); }
+  }
+
+  // Replace progress wrapper
+  var wrap = document.getElementById('checklist-progress-<%= @issue.id %>');
+  if (wrap) {
+    var tmp = document.createElement('div');
+    tmp.innerHTML = <%= raw render('checklists/checklist_progress', issue: @issue).to_json %>;
+    wrap.replaceWith(tmp.firstElementChild);
+  }
+
+  // Flash a notice
+  var notice = document.getElementById('flash_notice');
+  if (!notice) {
+    notice = document.createElement('div');
+    notice.id = 'flash_notice';
+    notice.className = 'flash notice';
+    var content = document.getElementById('content');
+    if (content) content.insertBefore(notice, content.firstChild);
+  }
+  if (notice) {
+    notice.textContent = <%= raw l(:notice_checklist_template_applied).to_json %>;
+    notice.style.display = '';
+    setTimeout(function() { notice.style.display = 'none'; }, 3000);
+  }
+})();
+
+// Refresh the issue History tab in place
+<%= render 'history_sync' %>

@@ -1,0 +1,23 @@
+<%= form_with model: @category,
+              url: @category.new_record? ? checklist_template_categories_path
+                                        : checklist_template_category_path(@category),
+              local: true do |f| %>
+
+  <%= error_messages_for @category %>
+
+  <div class="box tabular">
+    <p>
+      <%= f.label :name, l(:field_name) %>
+      <%= f.text_field :name, size: 60, required: true %>
+    </p>
+    <p>
+      <%= f.label :position, l(:field_position) %>
+      <%= f.number_field :position, min: 0 %>
+    </p>
+  </div>
+
+  <p>
+    <%= f.submit l(:button_save), class: 'button-positive' %>
+    <%= link_to l(:button_cancel), checklist_template_categories_path %>
+  </p>
+<% end %>

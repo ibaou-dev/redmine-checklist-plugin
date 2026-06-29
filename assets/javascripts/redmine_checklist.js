@@ -223,6 +223,17 @@
   }
 
   /* -----------------------------------------------------------------------
+   * Re-init the sortable after a bulk DOM replace (e.g. applying a template).
+   * Exposed on window so .js.erb responses can call it.
+   * --------------------------------------------------------------------- */
+  window.reinitChecklistSortable = function () {
+    var panel = document.getElementById('checklist-panel');
+    if (panel && panel.dataset.canManage === 'true' && panel.dataset.reorderUrl) {
+      reinitSortable(panel);
+    }
+  };
+
+  /* -----------------------------------------------------------------------
    * Boot
    * --------------------------------------------------------------------- */
   document.addEventListener('DOMContentLoaded', function () {

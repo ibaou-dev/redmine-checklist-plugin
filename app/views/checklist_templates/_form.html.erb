@@ -1,0 +1,63 @@
+<%# Shared form partial for new/edit template.
+    Locals: @template (ChecklistTemplate), @project (Project or nil), @categories %>
+
+<%= form_with model: @template,
+              url: @project ? (@template.new_record? ? project_checklist_templates_path(@project)
+                                                     : project_checklist_template_path(@project, @template))
+                            : (@template.new_record? ? checklist_templates_path
+                                                     : checklist_template_path(@template)),
+              local: true do |f| %>
+
+  <%= error_messages_for @template %>
+
+  <div class="box tabular">
+    <p>
+      <%= f.label :name, l(:field_name) %>
+      <%= f.text_field :name, size: 60, required: true, id: 'checklist_template_name' %>
+    </p>
+
+    <p>
+      <%= f.label :category_id, l(:label_checklist_template_category) %>
+      <%= f.collection_select :category_id,
+                              ChecklistTemplateCategory.ordered, :id, :name,
+                              { include_blank: true },
+                              { id: 'checklist_template_category_id' } %>
+    </p>
+
+    <p>
+      <%= f.label :tracker_id, l(:field_tracker) %>
+      <%= f.collection_select :tracker_id,
+                              Tracker.sorted, :id, :name,
+                              { include_blank: true },
+                              { id: 'checklist_template_tracker_id' } %>
+      <em class="info"><%= l(:label_checklist_template_default_for_tracker) %></em>
+    </p>
+
+    <p>
+      <%= f.label :is_default, l(:field_is_default) %>
+      <%= f.check_box :is_default, id: 'checklist_template_is_default' %>
+    </p>
+
+    <% unless @project %>
+      <p>
+        <%= f.label :is_public, l(:field_is_public) %>
+        <%= f.check_box :is_public, id: 'checklist_template_is_public' %>
+      </p>
+    <% end %>
+
+    <p>
+      <%= f.label :template_text, l(:label_checklist_template_body) %>
+      <%= f.text_area :template_text, rows: 10, cols: 60,
+                      id: 'checklist_template_template_text',
+                      class: 'checklist-template-textarea' %>
+      <em class="info"><%= l(:label_checklist_template_body_hint) %></em>
+    </p>
+  </div>
+
+  <p>
+    <%= f.submit l(:button_save), class: 'button-positive' %>
+    <%= link_to l(:button_cancel),
+                @project ? project_checklist_templates_path(@project)
+                         : checklist_templates_path %>
+  </p>
+<% end %>

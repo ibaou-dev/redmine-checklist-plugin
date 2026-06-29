@@ -2,7 +2,7 @@ Redmine::Plugin.register :redmine_checklist do
   name        'Redmine Checklist'
   author      'ibaou-dev'
   description 'Checklist management for Redmine issues'
-  version     '0.2.1'
+  version     '0.3.0'
   url         'https://github.com/ibaou-dev/redmine-checklist-plugin'
   author_url  'https://github.com/ibaou-dev'
 
@@ -25,9 +25,14 @@ Redmine::Plugin.register :redmine_checklist do
       map.permission :done_checklists,
                      { checklist_items: [:done] }
 
-      # manage_checklists: full create/edit/delete/reorder
+      # manage_checklists: full create/edit/delete/reorder/apply_template
       map.permission :manage_checklists,
-                     { checklist_items: [:create, :update, :destroy, :reorder] },
+                     { checklist_items: [:create, :update, :destroy, :reorder, :apply_template] },
+                     require: :member
+
+      # manage_checklist_templates: CRUD on templates scoped to this project
+      map.permission :manage_checklist_templates,
+                     { checklist_templates: [:index, :new, :create, :edit, :update, :destroy] },
                      require: :member
     end
   end
@@ -37,11 +42,26 @@ Redmine::Plugin.register :redmine_checklist do
   # evaluation time (which happens inside the plugin_loader's prepare callback,
   # AFTER the acts_as_activity_provider module has been included in ApplicationRecord).
   activity_provider :checklists, class_name: 'ChecklistItem', default: false
+
+  # Project menu tab — visible only to members with manage_checklist_templates
+  menu :project_menu, :checklist_templates,
+       { controller: 'checklist_templates', action: 'index' },
+       param:   :project_id,
+       caption: :label_checklist_template_plural,
+       if:      proc { |p| User.current.allowed_to?(:manage_checklist_templates, p) }
 end
 
 # Register the search type so Redmine's search controller includes it.
 # The name 'checklist_items' maps to ChecklistItem model via singularize.camelcase.constantize.
 Redmine::Search.register :checklist_items
+
+# Admin menu: global template + category management (admin-only, auto-gated by Redmine).
+Redmine::MenuManager.map :admin_menu do |menu|
+  menu.push :checklist_templates,
+            { controller: 'checklist_templates', action: 'index' },
+            caption: :label_checklist_template_plural,
+            html: { class: 'icon icon-list' }
+end
 
 Rails.autoloaders.each { |l| l.ignore(File.expand_path('lib', __dir__)) } if Rails.autoloaders.respond_to?(:each)
 

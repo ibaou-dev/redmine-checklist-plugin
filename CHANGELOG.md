@@ -4,6 +4,23 @@ All notable changes to the Redmine Checklist plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.3.0] — 2026-06-29
+
+**Phase 3 — Checklist templates.**
+
+### Added
+- **Checklist templates**: reusable lists of items/sections that can be applied to any issue.
+  - **Global templates** managed under *Administration → Checklist templates* (admin-only), with optional **categories**.
+  - **Per-project templates**: a *Checklist templates* tab on each project for members with the new `manage_checklist_templates` permission.
+  - **Apply to an issue**: an "Apply template" control on the issue checklist panel (for users who can manage checklists) appends the template's items; the change is logged in the issue History.
+  - **Auto-apply on creation**: a template marked *default* for a tracker is applied automatically (silently) when a new issue of that tracker is created — project default first, otherwise the global default.
+  - **Item editor**: a simple one-item-per-line text editor; a line starting with `# ` becomes a section header.
+  - REST: templates are listed via `GET /checklist_templates(.json)`; apply via `POST /issues/:id/checklist_items/apply_template`.
+- New permission **`manage_checklist_templates`** (project-scoped template management).
+
+### Tested
+- 56 Playwright e2e tests (real Chrome). New `phase3-templates` spec covers admin template creation, applying a template to an issue (items added + wired + history, no JSON leak), silent tracker auto-apply on issue creation, and permission gating (view-only users get 403 on the project templates page and see no apply control).
+
 ## [0.2.1] — 2026-06-29
 
 **Patch — History tab fixes & delete-icon polish.**
@@ -62,6 +79,7 @@ First public release — **Phase 1 MVP: interactive issue checklists**.
 ### Notes
 - Built for Redmine 6.x; requires Redmine 5.0+. No proprietary gem dependencies.
 
+[0.3.0]: https://github.com/ibaou-dev/redmine-checklist-plugin/releases/tag/v0.3.0
 [0.2.1]: https://github.com/ibaou-dev/redmine-checklist-plugin/releases/tag/v0.2.1
 [0.2.0]: https://github.com/ibaou-dev/redmine-checklist-plugin/releases/tag/v0.2.0
 [0.1.0]: https://github.com/ibaou-dev/redmine-checklist-plugin/releases/tag/v0.1.0

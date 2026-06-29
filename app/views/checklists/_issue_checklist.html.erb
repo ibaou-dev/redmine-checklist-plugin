@@ -48,6 +48,27 @@
         </button>
       <% end %>
     </div>
+
+    <% available_templates = ChecklistTemplate.available_for(@project) %>
+    <% if available_templates.any? %>
+      <div class="checklist-template-bar">
+        <%= form_with url: apply_template_issue_checklist_items_path(@issue),
+                      method: :post,
+                      local: false do |f| %>
+          <select name="template_id" class="checklist-template-select">
+            <option value=""><%= l(:label_checklist_apply_template) %>&hellip;</option>
+            <% available_templates.each do |tmpl| %>
+              <option value="<%= tmpl.id %>">
+                <%= tmpl.name %><% if tmpl.category %> (<%= tmpl.category.name %>)<% end %>
+              </option>
+            <% end %>
+          </select>
+          <button type="submit" class="checklist-add-btn">
+            <%= l(:label_checklist_apply_template) %>
+          </button>
+        <% end %>
+      </div>
+    <% end %>
   <% end %>
 </div>
 <% end %>

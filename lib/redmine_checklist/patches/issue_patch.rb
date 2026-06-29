@@ -5,6 +5,16 @@ module RedmineChecklist
         base.has_many :checklist_items, -> { order(:position) },
                       dependent: :destroy,
                       foreign_key: :issue_id
+
+        base.after_create :apply_default_checklist_template
+      end
+
+      # Auto-apply the default checklist template on issue creation (silent — no journal).
+      def apply_default_checklist_template
+        template = ChecklistTemplate.default_for(project, tracker)
+        template&.apply_to(self, User.current)
+      rescue StandardError => e
+        Rails.logger.error("checklist auto-apply error: #{e.message}")
       end
 
       # Progress over checklist *tasks* (sections excluded), as a hash
