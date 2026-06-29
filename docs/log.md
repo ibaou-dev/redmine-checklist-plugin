@@ -2,6 +2,13 @@
 
 All notable changes to this docs bundle.
 
+## 2026-06-29 — Per-project enforcement + row polish (v0.5.0)
+
+- **Per-project enforcement override.** New `checklist_project_settings` table (migration 003) + `ChecklistProjectSetting` with `effective_for(project)` resolver: tri-state `inherit` / `enabled` (project's own statuses) / `disabled`; **project wins**, no row = inherit global. The `Issue` validation now reads the resolver instead of global settings directly. Config UI is an enforcement panel on the project *Checklist* tab (gated by `manage_checklist_templates`); the project menu caption changed to "Checklist".
+- **Row UI polish.** Expand control is a rotating chevron sprite; expand/edit/delete share the muted edit-pencil colour (scoped under `#checklist-panel` to beat the theme's `#content a`); clicking anywhere in the row body toggles the detail panel (pointer cursor via `.checklist-expandable`).
+- Independent verification through the real edit form + DB confirmed disabled-beats-global, enabled-uses-own-statuses, and inherit-falls-back. Note: a manual verification run left a project override in the DB that initially failed the global Phase 4 spec — added a defensive `ChecklistProjectSetting` clear to that spec's `beforeEach` (per-project overrides are shared global state across specs).
+- 63 Playwright e2e tests (real Chrome). New `phase5-project-enforcement` spec.
+
 ## 2026-06-29 — Phase 4 shipped (v0.4.0)
 
 - **Phase 4 complete and released as v0.4.0.** Mandatory items + status-transition enforcement (global setting: enable + pick guarded statuses; validated on `Issue`, so UI/bulk/API all blocked when transitioning into a guarded status with incomplete mandatory items). Per-item assignee + due date via an expandable detail row; inline meta (assignee/`@name`, due, overdue red); completion audit (`✓` + "completed by … on …" tooltip from `completed_by`/`completed_at`).

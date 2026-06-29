@@ -4,6 +4,29 @@
      end
    end %>
 
+<% if @project %>
+  <% setting = ChecklistProjectSetting.find_or_initialize_by(project_id: @project.id) %>
+  <div class="box">
+    <h3><%= l(:label_checklist_enforcement) %></h3>
+    <%= form_with url: project_checklist_settings_path(@project), method: :patch, local: true do |f| %>
+      <p>
+        <label><%= radio_button_tag 'checklist_project_setting[enforce_mode]', 'inherit', setting.enforce_mode == 'inherit' %> <%= l(:label_checklist_enforce_inherit) %></label><br>
+        <label><%= radio_button_tag 'checklist_project_setting[enforce_mode]', 'enabled', setting.enforce_mode == 'enabled' %> <%= l(:label_checklist_enforce_enabled) %></label><br>
+        <label><%= radio_button_tag 'checklist_project_setting[enforce_mode]', 'disabled', setting.enforce_mode == 'disabled' %> <%= l(:label_checklist_enforce_disabled) %></label>
+      </p>
+      <p>
+        <label><%= l(:setting_enforce_statuses) %></label><br>
+        <input type="hidden" name="checklist_project_setting[status_ids][]" value="">
+        <%= select_tag 'checklist_project_setting[status_ids][]',
+                       options_from_collection_for_select(IssueStatus.sorted, :id, :name, setting.status_ids),
+                       multiple: true, size: 6, id: 'checklist_project_enforce_statuses' %>
+        <em class="info"><%= l(:label_checklist_enforce_statuses_hint) %></em>
+      </p>
+      <p><%= f.submit l(:button_save), class: 'button-positive' %></p>
+    <% end %>
+  </div>
+<% end %>
+
 <div class="contextual">
   <%= link_to l(:label_checklist_template_new),
               @project ? new_project_checklist_template_path(@project)

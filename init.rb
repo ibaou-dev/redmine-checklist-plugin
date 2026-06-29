@@ -2,7 +2,7 @@ Redmine::Plugin.register :redmine_checklist do
   name        'Redmine Checklist'
   author      'ibaou-dev'
   description 'Checklist management for Redmine issues'
-  version     '0.4.0'
+  version     '0.5.0'
   url         'https://github.com/ibaou-dev/redmine-checklist-plugin'
   author_url  'https://github.com/ibaou-dev'
 
@@ -49,7 +49,7 @@ Redmine::Plugin.register :redmine_checklist do
   menu :project_menu, :checklist_templates,
        { controller: 'checklist_templates', action: 'index' },
        param:   :project_id,
-       caption: :label_checklist_template_plural,
+       caption: :label_checklist_project_menu,
        if:      proc { |p| User.current.allowed_to?(:manage_checklist_templates, p) }
 end
 

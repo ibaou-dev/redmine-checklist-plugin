@@ -22,7 +22,9 @@ scope 'checklist_templates' do
 end
 resources :checklist_templates
 
-# Project-scoped template management
+# Project-scoped template management + per-project enforcement override
 resources :projects do
   resources :checklist_templates, only: [:index, :new, :create, :edit, :update, :destroy]
+  resource :checklist_settings, only: [:update],
+           controller: 'checklist_project_settings'
 end

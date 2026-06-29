@@ -24,7 +24,7 @@
     <% end %>
   </li>
 <% else %>
-  <li class="checklist-item <%= item.done? ? 'is-done' : '' %>"
+  <li class="checklist-item <%= 'is-done' if item.done? %> <%= 'checklist-expandable' if can_manage %>"
       id="checklist-item-<%= item.id %>"
       data-id="<%= item.id %>">
 
@@ -69,7 +69,7 @@
         <button type="button"
                 class="checklist-expand"
                 aria-expanded="false"
-                aria-label="<%= l(:label_checklist_item_details) %>">&#9658;</button>
+                aria-label="<%= l(:label_checklist_item_details) %>"><%= sprite_icon('angle-right', l(:label_checklist_item_details), icon_only: true) %></button>
         <a href="#"
            class="checklist-edit"
            aria-label="<%= l(:label_checklist_edit_item) %>"

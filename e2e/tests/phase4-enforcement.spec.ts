@@ -29,6 +29,9 @@ const CLOSED = '5'; // Closed status id
 
 function enableEnforcement() {
   ruby(`Setting.plugin_redmine_checklist = {'show_progress_bar'=>'1','save_log'=>'1','enforce_mandatory'=>'1','enforce_statuses'=>['${CLOSED}']}`);
+  // Ensure no per-project override leaks in from another spec — Phase 4 tests
+  // the GLOBAL enforcement path, which a project override would mask.
+  ruby(`ChecklistProjectSetting.where(project_id: Issue.find(${ISSUE_ID}).project_id).delete_all`);
 }
 function resetIssueOpen() {
   ruby(`i=Issue.find(${ISSUE_ID}); i.checklist_items.delete_all; i.update_columns(status_id:1, done_ratio:0); Journal.joins(:details).where(journalized_type:'Issue',journalized_id:${ISSUE_ID}).where(journal_details:{prop_key:'checklist'}).destroy_all`);
@@ -118,6 +121,30 @@ test('details: expand row sets mandatory, due date and assignee; row reflects th
   expect(rubyOut(`print Issue.find(${ISSUE_ID}).checklist_items.first.is_mandatory`)).toBe('true');
 
   expect(failedRequests.filter(r => r.includes('checklist'))).toEqual([]);
+  await logout(page);
+});
+
+// ---------------------------------------------------------------------------
+// 2b. Clicking the row body (not a control) toggles the detail panel
+// ---------------------------------------------------------------------------
+test('details: clicking the row body toggles the detail panel', async ({ page }) => {
+  ruby(`Issue.find(${ISSUE_ID}).checklist_items.create!(subject:'Click toggle', position:0)`);
+  await login(page, 'admin', 'Test1234!');
+  await page.goto(`/issues/${ISSUE_ID}`);
+
+  const row = page.locator('#checklist-items .checklist-item').first();
+  const panel = row.locator('.checklist-item-details');
+  await expect(panel).toBeHidden();
+
+  // Click the item text (row body) → expands.
+  await row.locator('.checklist-item-text').click();
+  await expect(panel).toBeVisible({ timeout: 5000 });
+  await expect(row.locator('.checklist-expand')).toHaveClass(/expanded/);
+
+  // Click the row body again → collapses.
+  await row.locator('.checklist-item-text').click();
+  await expect(panel).toBeHidden();
+
   await logout(page);
 });
 

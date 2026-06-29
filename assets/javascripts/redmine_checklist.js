@@ -123,25 +123,40 @@
     var detailDiv  = li.querySelector('.checklist-item-details');
     if (!expandBtn || !detailDiv) return;
 
-    // Toggle chevron glyph and panel visibility
+    // Toggle panel visibility; the chevron rotates via the `.expanded` class.
     function openPanel() {
       detailDiv.style.display = '';
+      expandBtn.classList.add('expanded');
       expandBtn.setAttribute('aria-expanded', 'true');
-      expandBtn.innerHTML = '&#9660;'; // ▾
     }
 
     function closePanel() {
       detailDiv.style.display = 'none';
+      expandBtn.classList.remove('expanded');
       expandBtn.setAttribute('aria-expanded', 'false');
-      expandBtn.innerHTML = '&#9658;'; // ▸
     }
 
-    expandBtn.addEventListener('click', function () {
-      if (expandBtn.getAttribute('aria-expanded') === 'true') {
-        closePanel();
-      } else {
-        openPanel();
+    function togglePanel() {
+      if (expandBtn.getAttribute('aria-expanded') === 'true') { closePanel(); } else { openPanel(); }
+    }
+
+    expandBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      togglePanel();
+    });
+
+    // Click anywhere on the row body (not on the checkbox, drag handle, the
+    // right-hand actions, the open detail panel, or any control) toggles the
+    // detail panel — the row shows a pointer cursor via `.checklist-expandable`.
+    li.addEventListener('click', function (e) {
+      if (e.target.closest(
+        '.checklist-checkbox, .checklist-handle, .checklist-item-actions, ' +
+        '.checklist-item-details, .checklist-edit-input, ' +
+        'a, button, input, select, textarea, label'
+      )) {
+        return;
       }
+      togglePanel();
     });
 
     // Cancel button
