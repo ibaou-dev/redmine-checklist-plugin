@@ -74,6 +74,32 @@ test('done_ratio: 1/4 tasks checked → done_ratio 20, 2/4 → 50', async ({ pag
 });
 
 // ---------------------------------------------------------------------------
+// 1b. Live refresh: the issue "% Done" field updates WITHOUT a page reload
+// ---------------------------------------------------------------------------
+test('done_ratio: issue %Done field updates live (no reload) when an item is checked', async ({ page }) => {
+  seedChecklist(ISSUE_ID, ['Task 1', 'Task 2', 'Task 3', 'Task 4']);
+
+  await login(page, 'admin', 'Test1234!');
+  await page.goto(ISSUE_URL);
+
+  // Core "% Done" cell on the issue show page (div.attribute.progress > .value).
+  const doneCell = page.locator('.attribute.progress .value');
+  await expect(doneCell).toContainText('0%');
+
+  // Check one item → 1/4 = 20%. The cell must update in place (no reload).
+  const firstRow = page.locator('#checklist-items .checklist-item').first();
+  await firstRow.locator('.checklist-checkbox').click();
+  await expect(firstRow).toHaveClass(/is-done/, { timeout: 7000 });
+  await expect(doneCell).toContainText('20%', { timeout: 7000 });
+
+  // Uncheck → back to 0%, still live.
+  await firstRow.locator('.checklist-checkbox').click();
+  await expect(doneCell).toContainText('0%', { timeout: 7000 });
+
+  await logout(page);
+});
+
+// ---------------------------------------------------------------------------
 // 2. done_ratio OFF: ratio unchanged when setting is disabled
 // ---------------------------------------------------------------------------
 test('done_ratio OFF: ratio unchanged when affect_done_ratio is disabled', async ({ page }) => {

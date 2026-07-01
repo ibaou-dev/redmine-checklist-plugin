@@ -30,5 +30,8 @@
   }
 })();
 
+// Refresh Redmine's core "% Done" field in place (when the plugin drives it)
+<%= render 'done_ratio_sync' %>
+
 // Refresh the issue History tab in place (see _history_sync.js.erb)
 <%= render 'history_sync' %>
