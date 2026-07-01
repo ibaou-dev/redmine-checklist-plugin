@@ -1,0 +1,17 @@
+// convert_blocked.js.erb — the quick conversion was refused (item no longer
+// convertible / permissions). Show a flash message.
+(function() {
+  var notice = document.getElementById('flash_error');
+  if (!notice) {
+    notice = document.createElement('div');
+    notice.id = 'flash_error';
+    notice.className = 'flash error';
+    var content = document.getElementById('content');
+    if (content) { content.insertBefore(notice, content.firstChild); }
+  }
+  if (notice) {
+    notice.textContent = <%= raw @block_message.to_json %>;
+    notice.style.display = '';
+    setTimeout(function() { notice.style.display = 'none'; }, 5000);
+  }
+})();

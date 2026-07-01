@@ -2,7 +2,7 @@
 
 A checklist plugin for Redmine issues — add ordered, checkable items to any issue, with progress tracking, sections, templates, per-item assignment, and mandatory-item enforcement. Open-source (GPL-3.0), dependency-light (no proprietary gems), built and tested for **Redmine 6.x** (Rails 7.2, Ruby 3.x).
 
-> **Status:** **v1.1.1** — stable. The interactive single-issue checklist, change history,
+> **Status:** **v1.2.0** — stable. The interactive single-issue checklist, change history,
 > done-ratio integration, activity feed, search, reusable **templates**, **mandatory-item
 > enforcement** (global **or per-project**), **per-item assignment** (assignee/due date),
 > the optional **issue-list "Checklist" column**, and **converting an item into a subtask**
@@ -30,7 +30,9 @@ Real tasks contain small steps too lightweight for their own issue. This plugin 
 - ✅ Templates — global + per-project, categories, apply-to-issue, tracker auto-apply — *v0.3.0*
 - ✅ Mandatory items that block configured status transitions (global **or per-project** override); per-item assignee, due date & completion audit — *v0.4.0 / v0.5.0*
 - ✅ Optional **"Checklist" column** on the issue list / saved queries (shows `done/total · %`) — *v1.0.0*
-- ✅ **Convert a checklist item into a subtask** — promotes an open task to a linked child issue via the prefilled new-issue form; the item becomes a locked row whose done-state mirrors the subtask — *v1.1.0*
+- ✅ **Convert a checklist item into a subtask** — promotes an open task to a linked child issue via the prefilled new-issue form (or **one-click quick convert** on the parent's tracker); the item becomes a locked row whose done-state mirrors the subtask. Issue **% Done** combines checklist items and subtasks — *v1.1.0 / v1.2.0*
+- ✅ **Assignment notifications** — optional email + JSON webhook to the assignee when a checklist item is assigned — *v1.2.0*
+- ✅ **Checklist due dates surfaced** — a "next due" chip on the issue and an optional sortable **"Checklist due" column** for the issue list / queries — *v1.2.0*
 
 **Possible future work (see [roadmap](docs/planning/roadmap.md)):**
 
@@ -57,7 +59,7 @@ The plugin directory must be named `redmine_checklist`.
 
 ```bash
 cd /path/to/redmine/plugins
-tar xzf redmine_checklist-1.1.1.tar.gz   # extracts redmine_checklist/
+tar xzf redmine_checklist-1.2.0.tar.gz   # extracts redmine_checklist/
 cd /path/to/redmine
 bundle exec rake redmine:plugins:migrate RAILS_ENV=production NAME=redmine_checklist
 # restart Redmine

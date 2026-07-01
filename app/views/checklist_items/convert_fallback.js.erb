@@ -1,0 +1,4 @@
+// convert_fallback.js.erb — quick conversion couldn't auto-create the subtask
+// (the tracker/status needs a field we can't supply). Send the user to the
+// standard prefilled new-issue form to complete it.
+window.location.href = <%= raw convert_issue_checklist_item_path(@issue, @checklist_item).to_json %>;

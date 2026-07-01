@@ -15,14 +15,30 @@ module RedmineChecklist
   module Conversion
     module_function
 
+    # Token flow (prefilled-form conversion): verify the signed token, then link.
     def link!(token, issue)
       return if token.blank? || issue.nil? || !issue.persisted?
 
       data = RedmineChecklist.convert_verifier.verify(token)
       item = ChecklistItem.find_by(id: data['item'])
       return unless item
-      return if item.converted?                     # idempotent — already linked
       return unless issue.parent_id == item.issue_id # sanity: issue IS a child of the item's issue
+
+      attach!(item, issue)
+    rescue ActiveSupport::MessageVerifier::InvalidSignature, ActiveSupport::MessageVerifier::InvalidMessage
+      nil
+    rescue StandardError => e
+      Rails.logger.error("checklist convert link error: #{e.class}: #{e.message}")
+      nil
+    end
+
+    # Link a (freshly created) child +issue+ back to a checklist +item+ and
+    # journal the conversion. Idempotent. Shared by the token flow (link!) and
+    # the quick-convert flow (which creates the child itself). Returns true on
+    # a fresh link, false when the item was already converted / on error.
+    def attach!(item, issue)
+      return false if item.nil? || issue.nil? || !issue.persisted?
+      return false if item.converted?               # idempotent — already linked
 
       parent = item.issue
       before = ChecklistHistory.serialize(parent.checklist_items.ordered.to_a)
@@ -30,15 +46,14 @@ module RedmineChecklist
       item.update_columns(
         converted_issue_id: issue.id,
         converted_at:       Time.current,
-        converted_by_id:    data['user']
+        converted_by_id:    User.current&.id
       )
 
       record_convert_journal(parent, before)
-    rescue ActiveSupport::MessageVerifier::InvalidSignature, ActiveSupport::MessageVerifier::InvalidMessage
-      nil
+      true
     rescue StandardError => e
-      Rails.logger.error("checklist convert link error: #{e.class}: #{e.message}")
-      nil
+      Rails.logger.error("checklist convert attach error: #{e.class}: #{e.message}")
+      false
     end
 
     # Fresh journal on the parent issue recording the conversion (no consolidation —
@@ -63,6 +78,7 @@ module RedmineChecklist
   end
 end
 
+require_relative 'redmine_checklist/notifier'
 require_relative 'redmine_checklist/hooks/asset_hooks'
 require_relative 'redmine_checklist/hooks/view_hooks'
 require_relative 'redmine_checklist/hooks/convert_hooks'

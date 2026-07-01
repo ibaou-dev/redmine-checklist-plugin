@@ -82,17 +82,27 @@ Goal: a fully usable single-issue checklist.
 **Exit:** v1.0 tagged and installable via the standard Redmine plugin flow. ✔ Shipped as **v1.0.0** (64 e2e tests).
 
 ### Deferred to future work
-- Issue-list completion **filter** (filter issues by checklist state).
-- **Multiline paste** to bulk-add items.
-- Additional **locale translations** (the structure supports them; English ships complete).
-- Cross-DB (MySQL) / older-version runtime verification (developed and tested on PostgreSQL + Redmine 6.1; code uses portable ActiveRecord only — no raw vendor SQL).
+- Cross-DB (MySQL) / older-version runtime verification (developed and tested on PostgreSQL + Redmine 6.1; code uses portable ActiveRecord only — no raw vendor SQL). Planned on a separate branch.
+
+*(**Multiline paste** to bulk-add items — since **shipped in v1.2.0**, see Phase 7.)*
+
+## Phase 6 — Convert to subtask & combined done-ratio ✅ (done — v1.1.0 / v1.2.0)
+
+- ✅ Convert a checklist item → real child issue via a prefilled new-issue form (v1.1.0), plus **one-click "Quick convert"** on the parent's tracker (v1.2.0).
+- ✅ The original item is retained as a **locked linked row** that mirrors the subtask's open/closed (done) state.
+- ✅ Issue `done_ratio` combines **checklist items + subtasks** (settings `subtask_done_ratio` on/off, `count_subtask_when_full`).
+- ✅ Live `done_ratio` refresh.
+
+## Phase 7 — Notifications & due-date surfacing ✅ (done — v1.2.0)
+
+- ✅ **Email + JSON webhook** to a checklist item's assignee on assignment (both setting-gated, off by default).
+- ✅ **"Next checklist due"** chip on the issue + a sortable **"Checklist due"** issue-list column (converted items are real issues that already appear in calendar/Gantt).
+- ✅ **Multiline paste** → bulk-add items.
 
 ## Beyond v1.0 (backlog)
 
-- Per-item file attachments and comments.
 - Cross-project checklist reporting/dashboard.
-- Due-date surfacing in calendar/Gantt.
-- Webhooks / email notifications on item assignment.
+- Convert a checklist item to a subtask on a *different* tracker (e.g. a 'deploy' item → a Deployment tracker; a 'merge/cherry-pick' item → a Merge-request tracker).
 
 ## Sequencing rationale
 

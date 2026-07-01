@@ -1,0 +1,7 @@
+<%= l(:mail_body_checklist_item_assigned_html,
+       subject: content_tag(:strong, @item.subject),
+       issue: link_to("#{@issue.tracker.name} ##{@issue.id}: #{@issue.subject}", @issue_url)).html_safe %>
+<% if @item.due_date %>
+  <p><%= l(:field_due_date) %>: <%= format_date(@item.due_date) %></p>
+<% end %>
+<p><%= link_to l(:label_checklist), @issue_url %></p>

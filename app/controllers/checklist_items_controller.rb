@@ -8,10 +8,10 @@ class ChecklistItemsController < ApplicationController
   helper :avatars
 
   before_action :find_issue
-  before_action :find_checklist_item, only: [:update, :destroy, :done, :convert]
+  before_action :find_checklist_item, only: [:update, :destroy, :done, :convert, :convert_quick]
   before_action :authorize
 
-  accept_api_auth :index, :create, :update, :destroy, :reorder, :done, :apply_template
+  accept_api_auth :index, :create, :bulk_create, :update, :destroy, :reorder, :done, :apply_template, :convert_quick
 
   # GET /issues/:issue_id/checklist_items(.json)
   # Requires: view_checklists
@@ -41,6 +41,45 @@ class ChecklistItemsController < ApplicationController
         format.js   { render :error }
         format.json { render json: @checklist_item.errors, status: :unprocessable_entity }
       end
+    end
+  end
+
+  # POST /issues/:issue_id/checklist_items/bulk_create(.js|.json)
+  # Requires: manage_checklists — bulk-add one item per line from pasted text.
+  # A line starting with "#" becomes a section header (a space after # is
+  # optional); blank lines and a lone "#" are ignored.
+  def bulk_create
+    snapshot_before = @issue.checklist_items.ordered.to_a
+    pos     = @issue.checklist_items.maximum(:position).to_i
+    created = 0
+
+    params[:text].to_s.split(/\r?\n/).map(&:strip).reject(&:blank?).each do |line|
+      if (m = line.match(/\A#\s*(.+)\z/))
+        subject, is_section = m[1], true
+      elsif line == '#'
+        next
+      else
+        subject, is_section = line, false
+      end
+      pos += 1
+      @issue.checklist_items.create!(subject: subject[0, 1000], is_section: is_section,
+                                     position: pos, author_id: User.current.id)
+      created += 1
+    end
+
+    if created.positive?
+      record_checklist_journal(snapshot_before)
+      ChecklistItem.recalc_done_ratio(@issue.id)
+    end
+
+    @checklist_items = @issue.checklist_items.reload.ordered
+    @can_done   = User.current.allowed_to?(:done_checklists,   @project) ||
+                  User.current.allowed_to?(:manage_checklists, @project)
+    @can_manage = User.current.allowed_to?(:manage_checklists, @project)
+
+    respond_to do |format|
+      format.js   # bulk_create.js.erb
+      format.json { render json: @checklist_items, status: :created }
     end
   end
 
@@ -155,6 +194,42 @@ class ChecklistItemsController < ApplicationController
     redirect_to new_project_issue_path(@project, issue: issue_attrs, checklist_item_token: token)
   end
 
+  # POST /issues/:issue_id/checklist_items/:id/convert_quick(.js|.json)
+  # Requires: manage_checklists (this action) + add_issues + manage_subtasks.
+  # One-click promotion: auto-creates the subtask on the parent's own tracker
+  # (default status), carrying subject/assignee/due, links it, and swaps the row
+  # for the locked converted row — no navigation. If the tracker/status needs a
+  # field we can't supply (validation fails), falls back to the prefilled form.
+  def convert_quick
+    unless convertible?(@checklist_item)
+      @block_message = l(:error_convert_not_allowed)
+      respond_to do |format|
+        format.js   { render :convert_blocked }
+        format.json { render json: { error: @block_message }, status: :unprocessable_entity }
+      end
+      return
+    end
+
+    child = build_quick_subtask(@checklist_item)
+
+    respond_to do |format|
+      if child.save
+        RedmineChecklist::Conversion.attach!(@checklist_item, child)
+        @checklist_item.reload
+        @can_done   = User.current.allowed_to?(:done_checklists,   @project) ||
+                      User.current.allowed_to?(:manage_checklists, @project)
+        @can_manage = User.current.allowed_to?(:manage_checklists, @project)
+        ChecklistItem.recalc_done_ratio(@issue.id)
+        format.js   # convert_quick.js.erb
+        format.json { render json: { converted_issue_id: child.id }, status: :created }
+      else
+        # Auto-create not possible → let the user complete the prefilled form.
+        format.js   { render :convert_fallback }
+        format.json { render json: { fallback: 'form', errors: child.errors.full_messages }, status: :unprocessable_entity }
+      end
+    end
+  end
+
   # POST /issues/:issue_id/checklist_items/reorder(.js|.json)
   # Requires: manage_checklists
   def reorder
@@ -201,6 +276,21 @@ class ChecklistItemsController < ApplicationController
     return false if item.is_section? || item.done? || item.converted?
 
     @issue.checklist_convert_allowed?
+  end
+
+  # Build (unsaved) the child issue for a quick conversion: same tracker as the
+  # parent, that tracker's default status, carrying the item's subject and — when
+  # legal — its assignee and due date.
+  def build_quick_subtask(item)
+    child = Issue.new(project: @issue.project, tracker: @issue.tracker, author: User.current)
+    child.parent_issue_id = @issue.id
+    child.subject = item.subject
+    child.status  = child.tracker.default_status
+    if item.assignee_id.present? && child.assignable_users.map(&:id).include?(item.assignee_id)
+      child.assigned_to_id = item.assignee_id
+    end
+    child.due_date = item.due_date if item.due_date.present?
+    child
   end
 
   # Params for the create action: subject, is_section, position only

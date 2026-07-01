@@ -41,7 +41,7 @@ A clean-room, GPL-3.0, dependency-light checklist plugin for Redmine 6.x that de
 | Change history in journals | **Yes** | Yes (basic) | Yes + email | Yes |
 | Mandatory items block status | **Yes** | No | No | Yes |
 | Templates (tracker auto-apply) | **Yes** | Partial | Yes | Yes |
-| Issue-list filter by completion | Planned | No | Yes | Yes |
+| Issue-list column by completion | **Yes** (filter dropped) | No | Yes | Yes |
 | Per-item assignee + due date | **Yes** | No | No | Yes (PRO) |
 | REST API | Yes | Yes | Yes | Yes |
 
@@ -51,12 +51,12 @@ The wedge: **free + no proprietary gem + enforcement (mandatory items) + per-ite
 
 - **Functional:** an issue can carry a checklist; progress is visible; a mandatory item blocks the configured status transition; a template can be applied; all of it works over REST.
 - **Quality:** eager-load boot check passes in CI; unit + functional tests green; no `redmineup` or other proprietary dependency.
-- **Compatibility:** installs cleanly on Redmine 5.0–6.1 with PostgreSQL and MySQL.
+- **Compatibility:** installs cleanly on Redmine 6.0+ with PostgreSQL (tested). MySQL is untested, but the code uses portable ActiveRecord throughout (no vendor-specific SQL).
 - **Adoption signal:** published to GitHub with docs; installable via the standard Redmine plugin flow.
 
 ## Risks & mitigations
 
-- **Core API drift across Redmine versions** → pin to documented hooks; eager-load check in CI; test on 5.0 and 6.1.
+- **Core API drift across Redmine versions** → pin to documented hooks; eager-load check in CI; tested target is Redmine 6.x.
 - **Mandatory-item enforcement edge cases** (bulk edits, API status changes, workflow plugins) → enforce in the `Issue` model validation layer, not just the controller, so it holds across all paths.
 - **Journal/history performance on large checklists** → consolidate rapid successive edits into one journal entry (RedmineUP pattern: same user within a 1-minute window).
 - **Scope creep** (attachments, comments, dashboards) → explicitly deferred; see [overview.md](overview.md) non-goals.

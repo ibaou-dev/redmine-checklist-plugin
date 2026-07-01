@@ -35,6 +35,31 @@
   }
 
   /* -----------------------------------------------------------------------
+   * bulkCreateFromText — POST multiline text to the bulk_create endpoint and
+   * apply the returned JS (which rebuilds the list). Used by the paste handler.
+   * --------------------------------------------------------------------- */
+  function bulkCreateFromText(form, input, panel, text) {
+    var url  = form.action.replace(/\/+$/, '') + '/bulk_create';
+    var meta = document.querySelector('meta[name="csrf-token"]');
+    var token = meta ? meta.getAttribute('content') : '';
+    fetch(url, {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: {
+        'X-CSRF-Token': token,
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+        'Accept': 'text/javascript',
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: 'text=' + encodeURIComponent(text)
+    }).then(function (r) { return r.text(); }).then(function (js) {
+      try { (0, eval)(js); } catch (err) { if (window.console) { console.error(err); } }
+      if (input) { input.value = ''; input.focus(); }
+      reinitSortable(panel);
+    }).catch(function (err) { if (window.console) { console.error(err); } });
+  }
+
+  /* -----------------------------------------------------------------------
    * wireInlineEdit — attach inline-edit handler to a single .checklist-edit
    * control inside a given <li>
    * --------------------------------------------------------------------- */
@@ -259,6 +284,17 @@
             e.preventDefault();
             submitAddForm(form, false);
           }
+        });
+
+        // Paste multiple lines → bulk-add one item per line (a "#"-prefixed
+        // line becomes a section). Single-line pastes fall through to normal.
+        input.addEventListener('paste', function (e) {
+          var cd = e.clipboardData || window.clipboardData;
+          if (!cd) return;
+          var text = cd.getData('text') || '';
+          if (text.replace(/\s+$/, '').indexOf('\n') === -1) return; // single line
+          e.preventDefault();
+          bulkCreateFromText(form, input, panel, text);
         });
       }
 

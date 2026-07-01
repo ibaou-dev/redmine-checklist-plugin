@@ -17,6 +17,7 @@ class ChecklistItem < ApplicationRecord
   scope :sections, -> { where(is_section: true) }
 
   before_save :stamp_completion
+  after_update :checklist_notify_assignment
 
   # -----------------------------------------------------------------------
   # done? / section? / mandatory? convenience predicates
@@ -37,7 +38,7 @@ class ChecklistItem < ApplicationRecord
   # For a converted item this mirrors the child issue's closed state (the issue
   # is authoritative once created); otherwise it is the raw is_done flag.
   def effective_done?
-    return converted_issue.closed? if converted?
+    return ChecklistItem.subtask_done?(converted_issue) if converted?
 
     is_done?
   end
@@ -82,6 +83,20 @@ class ChecklistItem < ApplicationRecord
     !['0', 'false'].include?(Setting.plugin_redmine_checklist['subtask_done_ratio'].to_s)
   end
 
+  # Opt-in (default OFF): count a subtask as a "done" unit once it reaches 100%
+  # done_ratio even while still open, not only when its status is closed.
+  def self.count_subtask_when_full?
+    ['1', 'true'].include?(Setting.plugin_redmine_checklist['count_subtask_when_full'].to_s)
+  end
+
+  # Is +issue+ (a subtask) done for the purpose of parent progress? Closed always
+  # counts; 100% counts only when the setting above is on.
+  def self.subtask_done?(issue)
+    return false unless issue
+
+    issue.closed? || (count_subtask_when_full? && issue.done_ratio.to_i >= 100)
+  end
+
   def self.recalc_done_ratio(issue_id)
     plugin_settings = Setting.plugin_redmine_checklist
     affect = plugin_settings['affect_done_ratio'].to_s
@@ -103,7 +118,7 @@ class ChecklistItem < ApplicationRecord
       total = plain_tasks.size + subtasks.size
       return if total.zero?
 
-      done = plain_tasks.count(&:is_done?) + subtasks.count(&:closed?)
+      done = plain_tasks.count(&:is_done?) + subtasks.count { |c| subtask_done?(c) }
     else
       # Subtask combining OFF: only own LEAF issues; leave subtask parents to core.
       return unless issue.leaf?
@@ -121,6 +136,16 @@ class ChecklistItem < ApplicationRecord
   end
 
   private
+
+  # Notify the assignee (email + optional webhook) when an item is assigned to a
+  # new user. Fires only when assignee_id actually changed to a present value.
+  def checklist_notify_assignment
+    return unless saved_change_to_assignee_id? && assignee_id.present?
+
+    RedmineChecklist::Notifier.item_assigned(self, User.current)
+  rescue StandardError => e
+    Rails.logger.error("checklist notify trigger error: #{e.message}")
+  end
 
   def stamp_completion
     if is_done? && is_done_changed? && !is_section?

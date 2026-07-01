@@ -1,0 +1,31 @@
+// bulk_create.js.erb — rebuild the checklist list after a multiline paste
+// added several items at once.
+(function() {
+  var list = document.getElementById('checklist-items');
+  if (list) {
+    var html = '';
+    <% @checklist_items.each do |item| %>
+      html += <%= raw render('checklists/checklist_item',
+                             item:       item,
+                             can_done:   @can_done,
+                             can_manage: @can_manage).to_json %>;
+    <% end %>
+    list.innerHTML = html;
+    list.querySelectorAll('.checklist-item').forEach(function (li) {
+      if (typeof window.initChecklistRow === 'function') { window.initChecklistRow(li); }
+    });
+    if (typeof window.reinitChecklistSortable === 'function') { window.reinitChecklistSortable(); }
+  }
+
+  // Replace progress wrapper
+  var wrap = document.getElementById('checklist-progress-<%= @issue.id %>');
+  if (wrap) {
+    var tmp = document.createElement('div');
+    tmp.innerHTML = <%= raw render('checklists/checklist_progress', issue: @issue).to_json %>;
+    wrap.replaceWith(tmp.firstElementChild);
+  }
+})();
+
+// Refresh core "% Done" + History in place
+<%= render 'done_ratio_sync' %>
+<%= render 'history_sync' %>

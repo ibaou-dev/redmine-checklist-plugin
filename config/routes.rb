@@ -3,10 +3,12 @@ resources :issues do
     member do
       patch :done
       get   :convert
+      post  :convert_quick
     end
     collection do
       post :reorder
       post :apply_template
+      post :bulk_create
     end
   end
 end

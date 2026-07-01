@@ -41,18 +41,16 @@ Priority key: **P0** = MVP, **P1** = v1.0, **P2** = post-v1.0. Phase refers to [
 | Per-item assignee | P1 | 4 | Advanced Checklists; `assignee_id` |
 | Per-item due date | P1 | 4 | Advanced Checklists; `due_date` |
 | Completion audit (who/when) | P1 | 4 | `completed_by_id`, `completed_at` |
-| Issue-list filter/column by completion | P1 | 5 | RedmineUP PRO; `IssueQuery` patch |
-| Multiline paste → bulk add | P1 | 5 | RedmineUP; JS split on newline |
-| Full i18n coverage | P1 | 5 | beyond English |
-| Per-item file attachments | P2 | backlog | Advanced Checklists; heavy |
-| Per-item comments | P2 | backlog | Advanced Checklists; heavy |
+| Issue-list **column** by completion | P1 | 5 | done (v1.0.0); **filter** dropped |
+| Multiline paste → bulk add | P1 | 7 | done (v1.2.0); JS split on newline |
+| Full i18n coverage | P1 | — | dropped/deprioritized (English complete) |
 | Cross-project reporting/dashboard | P2 | backlog | net-new |
-| Email notifications on assignment | P2 | backlog | RedmineUP PRO |
+| Email notifications on assignment | P1 | 7 | done (v1.2.0); email + JSON webhook |
 
 ## Explicit non-goals (v1.0)
 
 - Nested/hierarchical items beyond a single section level (flat list + sections only).
-- Gantt/calendar surfacing of item due dates.
+- Checklist due dates are now surfaced **pragmatically** — a "next due" chip on the issue + a sortable "Checklist due" column — but native Gantt/calendar **entry injection** of item due dates remains a non-goal (converted items already appear as real issues in calendar/Gantt).
 - Real-time multi-user collaborative editing.
 
 ## Data fields already provisioned

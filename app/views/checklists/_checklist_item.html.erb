@@ -80,6 +80,13 @@
     <% if can_manage %>
       <span class="checklist-item-actions">
         <% if !item.done? && @issue.checklist_convert_allowed? %>
+          <%= link_to sprite_icon('chevrons-right', l(:button_quick_convert_to_subtask), icon_only: true),
+                      convert_quick_issue_checklist_item_path(@issue, item),
+                      method: :post,
+                      remote: true,
+                      class: 'checklist-quick-convert',
+                      title: l(:button_quick_convert_to_subtask),
+                      'aria-label': l(:button_quick_convert_to_subtask) %>
           <%= link_to sprite_icon('arrow-right', l(:button_convert_to_subtask), icon_only: true),
                       convert_issue_checklist_item_path(@issue, item),
                       class: 'checklist-convert',

@@ -121,6 +121,18 @@ module RedmineChecklist
         Setting.plugin_redmine_checklist['allow_convert_parent_closed'].to_s == '1' || !closed?
       end
 
+      # Earliest due date among this issue's OPEN, non-converted checklist items
+      # (converted items are real child issues with their own due dates). Drives
+      # the sortable "Checklist due" query column and the panel's "next due" line.
+      # Returns a Date or nil.
+      def checklist_due_date
+        checklist_items.reject(&:is_section?)
+                       .reject(&:converted?)
+                       .reject(&:effective_done?)
+                       .filter_map(&:due_date)
+                       .min
+      end
+
       # Short text for the issue-list "Checklist" column — e.g. "3/5 (60%)",
       # or nil for issues that have no checklist tasks.
       def checklist_progress

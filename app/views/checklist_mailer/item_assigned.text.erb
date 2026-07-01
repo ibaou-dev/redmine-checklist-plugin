@@ -1,0 +1,7 @@
+<%= l(:mail_body_checklist_item_assigned_text,
+       subject: @item.subject,
+       issue: "#{@issue.tracker.name} ##{@issue.id}: #{@issue.subject}") %>
+<% if @item.due_date %>
+<%= l(:field_due_date) %>: <%= format_date(@item.due_date) %>
+<% end %>
+<%= @issue_url %>

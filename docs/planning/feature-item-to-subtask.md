@@ -17,7 +17,12 @@ relates-to:
 > **Delivery status:** **Phase 1 delivered in v1.1.0** (2026-07-01) — the prefilled-form
 > conversion path (§4.4 A), the retained locked linked row + done-state mirror (§4.3, §4.6),
 > the `converted` History event, migration 005, and the permission/parent-open guards.
-> **Phase 2 (Quick auto-convert, §4.4 B + `subtask_tracker_id` setting) is not yet built.**
+> **Phase 2 (Quick auto-convert, §4.4 B) is now shipped in v1.2.0** — one-click conversion
+> on the **parent's tracker**, with a required-field pre-flight (falling back to the prefilled
+> form when a required field can't be supplied). The proposed per-project `subtask_tracker_id`
+> setting was **dropped** — quick convert uses the parent's tracker. A separate **future** idea
+> is converting an item to a subtask on a *different* tracker (e.g. a 'deploy' item → a
+> Deployment tracker, a 'merge/cherry-pick' item → a Merge-request tracker).
 
 ## 1. Summary
 

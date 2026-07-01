@@ -4,16 +4,23 @@ All notable changes to the Redmine Checklist plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 project adheres to [Semantic Versioning](https://semver.org/).
 
-## [1.1.1] — 2026-07-01
+## [1.2.0] — 2026-07-01
 
-**Done-ratio hardening.** Performance + a safety valve for the combined checklist/subtask done-ratio introduced in 1.1.0. No behaviour change by default.
+**Quick convert, assignment notifications, checklist due dates, and done-ratio hardening.**
 
 ### Added
-- **Setting "Combine subtasks into the issue done ratio"** (on by default). Turn it **off** to have the plugin leave any issue that has subtasks to Redmine's own done-ratio calculation, driving the ratio from the checklist only on issues without subtasks — an escape hatch if the subtask combining is ever unwanted or costly in a very deep issue tree.
+- **Quick convert (one click).** A second action icon (»), next to the "Convert to subtask…" arrow, **auto-creates the subtask on the parent's own tracker** (default status) carrying the item's subject/assignee/due date, links it, and swaps the row to the locked "→ #N" in place — no form, no navigation. If that tracker/status needs a field it can't supply, it falls back to the prefilled new-issue form.
+- **Assignment notifications.** When a checklist item is assigned to a user, the plugin can **email** them (setting *"Email a checklist item's assignee…"*) and/or POST a JSON **webhook** (setting *Webhook URL*). Both are off by default; self-assignments notify nobody.
+- **Checklist due dates surfaced.** A **"next checklist due"** chip in the checklist panel (earliest open, non-converted item's due date, red when overdue), and an optional **sortable "Checklist due" column** for the issue list / saved queries — so you can order issues by their nearest checklist deadline. (Converted items are real child issues and already appear in calendar/Gantt.)
+- **Setting "Combine subtasks into the issue done ratio"** (on by default). Turn it **off** to leave any issue that has subtasks to Redmine's own done-ratio calculation, driving the ratio from the checklist only on issues without subtasks — an escape hatch if the subtask combining is ever unwanted or costly in a very deep issue tree.
 
 ### Changed / Fixed
 - **Much cheaper parent recalculation.** The parent's combined done-ratio is now recomputed only when a child issue's **status** or **parent** actually changes (and on child deletion) — previously it recomputed on *every* issue save (even editing a description or adding a note), which added needless queries instance-wide. Behaviour is unchanged; the work just no longer fires on edits that can't affect the ratio.
 - Deleting a subtask now correctly updates its parent's combined done-ratio.
+
+### Notes
+- Quick convert needs the same permissions as the form path (core **Add issues** + **Manage subtasks**, plus *Manage checklists*).
+- No migration in this release.
 
 ## [1.1.0] — 2026-07-01
 

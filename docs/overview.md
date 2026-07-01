@@ -57,9 +57,8 @@ See [product/use-cases.md](product/use-cases.md) for detailed scenarios.
 
 ## Out of scope (for now)
 
-- Per-item file attachments and threaded comments (heavy; revisit post-v1.0)
+- Per-item file attachments and threaded comments (heavy) — intentionally handled by **converting an item to a subtask** (a real issue with attachments and comments) rather than built into checklist items
 - Cross-project checklist dashboards / reporting
-- Gantt or calendar integration of item due dates
 - Nested/hierarchical items beyond a single section level
 
 See [planning/roadmap.md](planning/roadmap.md) for how scope is sequenced.

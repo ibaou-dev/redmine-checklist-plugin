@@ -1,0 +1,25 @@
+// convert_quick.js.erb — the item was promoted to a subtask in one click.
+// Swap its row for the (now locked) converted row, then sync %Done + History.
+(function() {
+  var li = document.getElementById('checklist-item-<%= @checklist_item.id %>');
+  if (li) {
+    var tmp = document.createElement('div');
+    tmp.innerHTML = <%= raw render('checklists/checklist_item',
+                               item:       @checklist_item,
+                               can_done:   @can_done,
+                               can_manage: @can_manage).to_json %>;
+    li.replaceWith(tmp.firstElementChild);
+  }
+
+  // Replace progress wrapper
+  var wrap = document.getElementById('checklist-progress-<%= @issue.id %>');
+  if (wrap) {
+    var tmp2 = document.createElement('div');
+    tmp2.innerHTML = <%= raw render('checklists/checklist_progress', issue: @issue).to_json %>;
+    wrap.replaceWith(tmp2.firstElementChild);
+  }
+})();
+
+// Refresh core "% Done" + History in place
+<%= render 'done_ratio_sync' %>
+<%= render 'history_sync' %>

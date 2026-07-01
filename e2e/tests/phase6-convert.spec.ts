@@ -111,6 +111,43 @@ test('convert: promotes an open task to a child issue with a locked linked row a
 });
 
 // ---------------------------------------------------------------------------
+// 1c. Quick convert — one click auto-creates the subtask (AJAX row swap)
+// ---------------------------------------------------------------------------
+test('quick convert: one click promotes to a subtask in place (no navigation)', async ({ page }) => {
+  const { failedRequests } = trackErrors(page);
+  ruby(`Issue.find(${ISSUE_ID}).checklist_items.create!(subject:'Quick promote', position:0,
+          assignee_id: User.find_by(login:'admin').id, due_date: Date.today+4)`);
+
+  await login(page, 'admin', 'Test1234!');
+  await page.goto(`/issues/${ISSUE_ID}`);
+
+  const row = page.locator('#checklist-items .checklist-item').first();
+  const quick = row.locator('.checklist-quick-convert');
+  await expect(quick).toHaveCount(1);
+  await quick.click();
+
+  // The row swaps to the locked converted row in place (AJAX, no navigation).
+  const crow = page.locator('#checklist-items .checklist-converted').first();
+  await expect(crow).toHaveCount(1, { timeout: 7000 });
+
+  const childId = rubyOut(`print Issue.where(parent_id:${ISSUE_ID}).order(:id).last&.id`);
+  expect(childId).toMatch(/^\d+$/);
+  await expect(crow.locator(`a[href="/issues/${childId}"]`)).toHaveCount(1);
+  await expect(crow.locator('.checklist-checkbox')).toHaveCount(0);
+  expect(rubyOut(`print Issue.find(${ISSUE_ID}).checklist_items.first.converted_issue_id`)).toBe(childId);
+
+  // Same-tracker as the parent, and the item's assignee/due were carried.
+  expect(rubyOut(`c=Issue.find(${childId}); i=Issue.find(${ISSUE_ID}); print (c.tracker_id==i.tracker_id && c.assigned_to_id==User.find_by(login:'admin').id)`)).toBe('true');
+
+  // History records it.
+  await page.locator('#tab-history, a[href*="tab=history"]').first().click();
+  await expect(page.locator('#tab-content-history')).toContainText('converted to', { timeout: 7000 });
+
+  expect(failedRequests.filter(r => r.includes('checklist'))).toEqual([]);
+  await logout(page);
+});
+
+// ---------------------------------------------------------------------------
 // 2. Done-state mirror — closing the child marks the item done / counts progress
 // ---------------------------------------------------------------------------
 test('convert: closing the child issue marks the converted item done and counts toward progress', async ({ page }) => {
@@ -229,6 +266,31 @@ test('done-ratio: subtask_done_ratio toggle turns subtask-combining on/off', asy
   // OFF → plugin leaves the subtask-parent to core (subtask-only avg = 1/2 = 50).
   cfg('0'); seed();
   expect(rubyOut(`print Issue.find(${ISSUE_ID}).done_ratio`)).toBe('50');
+
+  ruby(`Setting.plugin_redmine_checklist = {'show_progress_bar'=>'1','save_log'=>'1'}`);
+});
+
+// ---------------------------------------------------------------------------
+// 3d. count_subtask_when_full — a subtask at 100% (still open) can count as done
+// ---------------------------------------------------------------------------
+test('done-ratio: count_subtask_when_full lets a 100%-but-open subtask count', () => {
+  const seed = `
+    Setting.issue_done_ratio='issue_field';
+    i=Issue.find(${ISSUE_ID}); i.checklist_items.delete_all; Issue.where(parent_id:${ISSUE_ID}).destroy_all; i.update_columns(done_ratio:0);
+    d=i.checklist_items.create!(subject:'plain', position:0, is_done:true);
+    c2=i.checklist_items.create!(subject:'conv', position:1);
+    ds=i.tracker.default_status;
+    ch=Issue.create!(project:i.project,tracker:i.tracker,author:User.find(1),subject:'S',status:ds,parent_issue_id:${ISSUE_ID});
+    c2.update_columns(converted_issue_id:ch.id); ch.update_columns(done_ratio:100);`;
+  const cfg = (v: string) => `Setting.plugin_redmine_checklist = {'show_progress_bar'=>'1','affect_done_ratio'=>'1','save_log'=>'1','subtask_done_ratio'=>'1','count_subtask_when_full'=>'${v}'};`;
+
+  // OFF: the 100%-but-open subtask does not count → 1 of 2 = 50.
+  rubyOut(`${cfg('0')}${seed} ChecklistItem.recalc_done_ratio(${ISSUE_ID}); print Issue.find(${ISSUE_ID}).done_ratio`);
+  expect(rubyOut(`print Issue.find(${ISSUE_ID}).done_ratio`)).toBe('50');
+
+  // ON: it counts → 2 of 2 = 100.
+  rubyOut(`${cfg('1')} ChecklistItem.recalc_done_ratio(${ISSUE_ID}); print Issue.find(${ISSUE_ID}).done_ratio`);
+  expect(rubyOut(`print Issue.find(${ISSUE_ID}).done_ratio`)).toBe('100');
 
   ruby(`Setting.plugin_redmine_checklist = {'show_progress_bar'=>'1','save_log'=>'1'}`);
 });

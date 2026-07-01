@@ -20,6 +20,13 @@
   <label for="settings_subtask_done_ratio"><%= l(:setting_subtask_done_ratio) %></label>
 </p>
 <p>
+  <%= hidden_field_tag 'settings[count_subtask_when_full]', '0', id: nil %>
+  <%= check_box_tag 'settings[count_subtask_when_full]', '1',
+                    ['true', '1', true].include?(settings['count_subtask_when_full']),
+                    id: 'settings_count_subtask_when_full' %>
+  <label for="settings_count_subtask_when_full"><%= l(:setting_count_subtask_when_full) %></label>
+</p>
+<p>
   <%= hidden_field_tag 'settings[save_log]', '0', id: nil %>
   <%= check_box_tag 'settings[save_log]', '1',
                     settings['save_log'].to_s != '0',
@@ -53,4 +60,16 @@
                  multiple: true,
                  size: 6,
                  id: 'settings_enforce_statuses' %>
+</p>
+<p>
+  <%= hidden_field_tag 'settings[notify_on_assignment]', '0', id: nil %>
+  <%= check_box_tag 'settings[notify_on_assignment]', '1',
+                    ['true', '1', true].include?(settings['notify_on_assignment']),
+                    id: 'settings_notify_on_assignment' %>
+  <label for="settings_notify_on_assignment"><%= l(:setting_notify_on_assignment) %></label>
+</p>
+<p>
+  <label for="settings_webhook_url"><%= l(:setting_webhook_url) %></label><br>
+  <%= text_field_tag 'settings[webhook_url]', settings['webhook_url'],
+                     id: 'settings_webhook_url', size: 60 %>
 </p>

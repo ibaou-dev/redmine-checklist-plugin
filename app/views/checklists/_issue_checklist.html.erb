@@ -17,6 +17,13 @@
 
   <h3 class="checklist-title">
     <%= l(:label_checklist) %>
+    <% if @issue.checklist_due_date %>
+      <% overdue = @issue.checklist_due_date < Date.today %>
+      <span class="checklist-next-due<%= ' overdue' if overdue %>"
+            title="<%= l(:label_checklist_next_due, date: format_date(@issue.checklist_due_date)) %>">
+        &#9200; <%= format_date(@issue.checklist_due_date) %>
+      </span>
+    <% end %>
   </h3>
 
   <%= render 'checklists/checklist_progress', issue: @issue %>
