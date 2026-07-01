@@ -6,9 +6,10 @@ module RedmineChecklist
                       dependent: :destroy,
                       foreign_key: :issue_id
 
-        base.after_create :apply_default_checklist_template
-        base.after_save   :checklist_recalc_parent_done_ratio
-        base.validate     :checklist_mandatory_items_satisfied
+        base.after_create  :apply_default_checklist_template
+        base.after_save    :checklist_recalc_parent_done_ratio
+        base.after_destroy :checklist_recalc_parent_done_ratio_on_destroy
+        base.validate      :checklist_mandatory_items_satisfied
 
         # Prepend the done_ratio override so it can call super() through to core.
         base.prepend RedmineChecklist::Patches::IssueDoneRatioOverride
@@ -70,21 +71,40 @@ module RedmineChecklist
       def checklist_drives_done_ratio?
         affect = Setting.plugin_redmine_checklist['affect_done_ratio'].to_s
         return false unless Setting.issue_done_ratio == 'issue_field' && (affect == '1' || affect == 'true')
+        return false unless checklist_items.any? { |i| !i.is_section? }
 
-        checklist_items.any? { |i| !i.is_section? }
+        # When subtask-combining is off the plugin only owns LEAF issues; subtask
+        # parents fall through to core's derivation.
+        ChecklistItem.combine_subtasks? || leaf?
       end
 
-      # after_save on ANY issue: if it has a parent, refresh the parent's
-      # checklist-driven done_ratio. This is what makes closing/reopening a
-      # converted subtask update the parent's % Done (the child's effective_done?
-      # mirror flips). Guarded + cheap for non-checklist parents (recalc returns
-      # early). Uses update_all internally, so no callback recursion.
+      # after_save: refresh the PARENT's combined done_ratio when this issue's
+      # close-state (status) or tree membership (parent) changed — those are the
+      # only child events that can move a parent's combined ratio, so we skip the
+      # recalc on every unrelated edit (description, notes, …) to avoid a
+      # per-save chain reaction across the whole instance. Uses update_all
+      # internally, so no callback recursion. No-op when combining is disabled.
       def checklist_recalc_parent_done_ratio
-        return unless parent_id
+        return unless ChecklistItem.combine_subtasks?
+        return unless saved_change_to_status_id? || saved_change_to_parent_id?
 
-        ChecklistItem.recalc_done_ratio(parent_id)
+        ChecklistItem.recalc_done_ratio(parent_id) if parent_id
+        # If reparented, the former parent also loses/gains a unit.
+        if saved_change_to_parent_id?
+          old_parent = saved_change_to_parent_id.first
+          ChecklistItem.recalc_done_ratio(old_parent) if old_parent && old_parent != parent_id
+        end
       rescue StandardError => e
         Rails.logger.error("checklist parent done_ratio recalc error: #{e.message}")
+      end
+
+      # after_destroy: removing a subtask changes its parent's unit count.
+      def checklist_recalc_parent_done_ratio_on_destroy
+        return unless ChecklistItem.combine_subtasks?
+
+        ChecklistItem.recalc_done_ratio(parent_id) if parent_id
+      rescue StandardError => e
+        Rails.logger.error("checklist parent done_ratio recalc (destroy) error: #{e.message}")
       end
 
       # Issue-level gate for promoting checklist items to subtasks: the user can

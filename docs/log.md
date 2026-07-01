@@ -2,6 +2,12 @@
 
 All notable changes to this docs bundle.
 
+## 2026-07-01 — v1.1.1 (done-ratio hardening)
+
+- **Trigger optimization.** `Issue#checklist_recalc_parent_done_ratio` (after_save) now only recomputes the parent when `saved_change_to_status_id?` or `saved_change_to_parent_id?` (a subtask's "closed" unit or tree membership can only change then) — previously it ran on every issue save instance-wide. Added `after_destroy` so deleting a subtask updates its parent. Reparenting recalcs both old and new parents.
+- **`subtask_done_ratio` on/off setting (default on).** `ChecklistItem.combine_subtasks?` gates the combined behaviour. When OFF: `recalc_done_ratio` only drives LEAF issues from the checklist (`effective_done?`), returns early for issues that have children; `checklist_convert_allowed?`… (unrelated); `checklist_drives_done_ratio?` returns `combine_subtasks? || leaf?` so `done_ratio_derived?` stops overriding core on subtask parents → core's normal derivation applies. Escape hatch for deep-tree recalc cost; default preserves v1.1.0 behaviour (missing key ⇒ on).
+- Verified via `rails runner`: ON=combined (30→60), OFF=core subtask-avg (50) + `checklist_drives_done_ratio?`=false on subtask parents, trigger optimization (non-status child edit leaves parent unchanged), after_destroy (50→100 on manual-subtask delete). New toggle e2e in `phase6-convert`.
+
 ## 2026-07-01 — v1.1.0 (convert item → subtask)
 
 - **Convert a checklist item into a subtask.** A "Convert to subtask" control on open tasks (not sections, not done, not already converted) redirects to the **standard new-issue form prefilled** via `issue[...]` URL params (subject, parent_issue_id, assigned_to_id, due_date) — reusing core validation/workflow/permissions untouched. A signed one-time token (`Rails.application.message_verifier`) travels GET→form→POST: injected as a hidden field by a `view_issues_form_details_bottom` hook, then consumed by a `controller_issues_new_after_save` listener that idempotently links the created child issue back to the item (`RedmineChecklist::Conversion.link!`, with a `parent_id == item.issue_id` sanity check) and journals it.

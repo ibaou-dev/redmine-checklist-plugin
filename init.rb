@@ -2,7 +2,7 @@ Redmine::Plugin.register :redmine_checklist do
   name        'Redmine Checklist'
   author      'ibaou-dev'
   description 'Checklist management for Redmine issues'
-  version     '1.1.0'
+  version     '1.1.1'
   url         'https://github.com/ibaou-dev/redmine-checklist-plugin'
   author_url  'https://github.com/ibaou-dev'
 
@@ -11,6 +11,7 @@ Redmine::Plugin.register :redmine_checklist do
   settings default: {
     'show_progress_bar'  => true,
     'affect_done_ratio'  => false,
+    'subtask_done_ratio' => true,
     'save_log'           => true,
     'enforce_mandatory'  => false,
     'enforce_statuses'   => [],

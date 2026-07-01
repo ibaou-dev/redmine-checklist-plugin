@@ -13,6 +13,13 @@
   <label for="settings_affect_done_ratio"><%= l(:setting_affect_done_ratio) %></label>
 </p>
 <p>
+  <%= hidden_field_tag 'settings[subtask_done_ratio]', '0', id: nil %>
+  <%= check_box_tag 'settings[subtask_done_ratio]', '1',
+                    settings['subtask_done_ratio'].to_s != '0',
+                    id: 'settings_subtask_done_ratio' %>
+  <label for="settings_subtask_done_ratio"><%= l(:setting_subtask_done_ratio) %></label>
+</p>
+<p>
   <%= hidden_field_tag 'settings[save_log]', '0', id: nil %>
   <%= check_box_tag 'settings[save_log]', '1',
                     settings['save_log'].to_s != '0',

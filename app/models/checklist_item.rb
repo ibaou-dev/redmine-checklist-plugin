@@ -73,6 +73,15 @@ class ChecklistItem < ApplicationRecord
   #     subtask derivation).
   #
   # Uses `update_all` (no callbacks, no journal) on a fresh query.
+  # Whether the plugin combines subtasks into done_ratio (and propagates a
+  # subtask close up to its parent). Plugin setting `subtask_done_ratio`, default
+  # ON — off only when explicitly '0'/'false'. When OFF, the plugin drives
+  # done_ratio only for LEAF issues from their checklist and leaves subtask
+  # parents to Redmine core (an escape hatch against deep-tree recalc overhead).
+  def self.combine_subtasks?
+    !['0', 'false'].include?(Setting.plugin_redmine_checklist['subtask_done_ratio'].to_s)
+  end
+
   def self.recalc_done_ratio(issue_id)
     plugin_settings = Setting.plugin_redmine_checklist
     affect = plugin_settings['affect_done_ratio'].to_s
@@ -84,15 +93,25 @@ class ChecklistItem < ApplicationRecord
     checklist_tasks = issue.checklist_items.reject(&:is_section?)
     return if checklist_tasks.empty?
 
-    # Exclude only items whose subtask still exists (converted?); a converted item
-    # whose child issue was later deleted reverts to a normal countable task.
-    plain_tasks = checklist_tasks.reject(&:converted?)
-    subtasks    = issue.children.to_a
+    if combine_subtasks?
+      # Combined universe: non-converted checklist tasks (is_done) + all direct
+      # subtasks (closed?). Exclude only items whose subtask still exists
+      # (converted?); a converted item whose child was deleted reverts to a
+      # normal countable task.
+      plain_tasks = checklist_tasks.reject(&:converted?)
+      subtasks    = issue.children.to_a
+      total = plain_tasks.size + subtasks.size
+      return if total.zero?
 
-    total = plain_tasks.size + subtasks.size
-    return if total.zero?
+      done = plain_tasks.count(&:is_done?) + subtasks.count(&:closed?)
+    else
+      # Subtask combining OFF: only own LEAF issues; leave subtask parents to core.
+      return unless issue.leaf?
 
-    done = plain_tasks.count(&:is_done?) + subtasks.count(&:closed?)
+      total = checklist_tasks.size
+      done  = checklist_tasks.count(&:effective_done?)
+    end
+
     # Integer formula: rounds to nearest 10% (matches reference plugin)
     ratio = (done * 10) / total * 10
 

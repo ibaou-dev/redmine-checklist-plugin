@@ -245,6 +245,10 @@ a render-time guard (`converted_issue` missing ⇒ treat as unconverted).
   false when the plugin owns the ratio (so core stops deriving from subtasks
   alone); (c) an `Issue after_save` that recomputes the parent's ratio when a
   subtask closes/reopens. Issues without a checklist keep core's behaviour.
+  *(v1.1.1)* The parent recalc fires only on a child's status/parent change (and
+  on delete), not on every save, and a plugin setting `subtask_done_ratio`
+  (default on) can disable the combining entirely — off leaves subtask parents to
+  core and drives only leaf issues from the checklist.
 - **Templates.** Out of scope here, but a natural follow-up: a template item flag
   "create as subtask on apply". Deferred.
 - **Issue-list "Checklist" column.** Unchanged; converted-but-open items count as

@@ -32,6 +32,7 @@ en:
   setting_allow_convert_parent_closed: "Allow converting checklist items to subtasks while the parent issue is closed"
   setting_show_progress_bar: "Show progress bar on issue"
   setting_affect_done_ratio: "Affect issue done ratio"
+  setting_subtask_done_ratio: "Combine subtasks into the issue done ratio (counts checklist items and subtasks together; a subtask counts when closed). Turn off to leave issues that have subtasks to Redmine's own calculation."
   setting_save_log: "Save checklist changes to issue log"
   permission_view_checklists: "View checklists"
   permission_done_checklists: "Check/uncheck checklist items"

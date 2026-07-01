@@ -4,6 +4,17 @@ All notable changes to the Redmine Checklist plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.1.1] — 2026-07-01
+
+**Done-ratio hardening.** Performance + a safety valve for the combined checklist/subtask done-ratio introduced in 1.1.0. No behaviour change by default.
+
+### Added
+- **Setting "Combine subtasks into the issue done ratio"** (on by default). Turn it **off** to have the plugin leave any issue that has subtasks to Redmine's own done-ratio calculation, driving the ratio from the checklist only on issues without subtasks — an escape hatch if the subtask combining is ever unwanted or costly in a very deep issue tree.
+
+### Changed / Fixed
+- **Much cheaper parent recalculation.** The parent's combined done-ratio is now recomputed only when a child issue's **status** or **parent** actually changes (and on child deletion) — previously it recomputed on *every* issue save (even editing a description or adding a note), which added needless queries instance-wide. Behaviour is unchanged; the work just no longer fires on edits that can't affect the ratio.
+- Deleting a subtask now correctly updates its parent's combined done-ratio.
+
 ## [1.1.0] — 2026-07-01
 
 **Convert a checklist item into a subtask.** A checklist task can now be promoted to a real child issue when a step outgrows a simple done/not-done.

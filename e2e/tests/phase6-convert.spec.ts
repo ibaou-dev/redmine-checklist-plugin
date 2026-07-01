@@ -203,6 +203,37 @@ test('convert: issue % Done combines checklist items and subtasks (subtask close
 });
 
 // ---------------------------------------------------------------------------
+// 3c. Done-ratio hardening — the subtask_done_ratio toggle switches combining
+// ---------------------------------------------------------------------------
+test('done-ratio: subtask_done_ratio toggle turns subtask-combining on/off', async () => {
+  const cfg = (combine: string) => ruby(
+    `Setting.plugin_redmine_checklist = {'show_progress_bar'=>'1','affect_done_ratio'=>'1','save_log'=>'1','subtask_done_ratio'=>'${combine}'};
+     Setting.issue_done_ratio = 'issue_field'`);
+  // 3 items, convert 2 → 3 combined units; tick the plain one, close one subtask.
+  const seed = () => ruby(
+    `i=Issue.find(${ISSUE_ID}); i.checklist_items.delete_all; Issue.where(parent_id:${ISSUE_ID}).destroy_all; i.update_columns(done_ratio:0);
+     i1=i.checklist_items.create!(subject:'I1',position:0);
+     i2=i.checklist_items.create!(subject:'I2',position:1);
+     i3=i.checklist_items.create!(subject:'I3',position:2);
+     ds=i.tracker.default_status;
+     c1=Issue.create!(project:i.project,tracker:i.tracker,author:User.find(1),subject:'S1',status:ds,parent_issue_id:${ISSUE_ID});
+     c2=Issue.create!(project:i.project,tracker:i.tracker,author:User.find(1),subject:'S2',status:ds,parent_issue_id:${ISSUE_ID});
+     i1.update_columns(converted_issue_id:c1.id); i2.update_columns(converted_issue_id:c2.id);
+     i3.update!(is_done:true); ChecklistItem.recalc_done_ratio(${ISSUE_ID});
+     Issue.where(parent_id:${ISSUE_ID}).order(:id).first.update!(status: IssueStatus.where(is_closed:true).first)`);
+
+  // ON → combined: I3 done + S1 closed of 3 units = 60.
+  cfg('1'); seed();
+  expect(rubyOut(`print Issue.find(${ISSUE_ID}).done_ratio`)).toBe('60');
+
+  // OFF → plugin leaves the subtask-parent to core (subtask-only avg = 1/2 = 50).
+  cfg('0'); seed();
+  expect(rubyOut(`print Issue.find(${ISSUE_ID}).done_ratio`)).toBe('50');
+
+  ruby(`Setting.plugin_redmine_checklist = {'show_progress_bar'=>'1','save_log'=>'1'}`);
+});
+
+// ---------------------------------------------------------------------------
 // 4. Permission gate — manage_checklists without manage_subtasks: no convert
 // ---------------------------------------------------------------------------
 test('convert: hidden for a manager lacking manage_subtasks (edit still shown)', async ({ page }) => {
