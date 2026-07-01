@@ -4,6 +4,27 @@ All notable changes to the Redmine Checklist plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.1.0] — 2026-07-01
+
+**Convert a checklist item into a subtask.** A checklist task can now be promoted to a real child issue when a step outgrows a simple done/not-done.
+
+### Added
+- **"Convert to subtask" action** on open checklist tasks (not sections, not already-done items). It opens the standard Redmine new-issue form **prefilled** from the item (subject, parent issue, assignee, due date), so the tracker's own required-field, workflow, and permission rules all apply — nothing is bypassed. On save, the created child issue is **linked back** to the item (via a signed one-time token) and the conversion is recorded in the issue **History** ("Checklist: … — converted to #N").
+- The converted item is **kept as a locked linked row** showing "→ #N" and the child's status. Its completion **mirrors the child issue**: when the subtask is closed the item counts as done for progress and mandatory-item enforcement (a mandatory step promoted to a subtask is satisfied when its issue closes).
+- **Issue "% Done" now combines checklist items and subtasks.** When the *Affect issue done ratio* setting is on and an issue has a checklist, its `done_ratio` is computed over the **combined** set — each non-converted checklist item plus each subtask (a converted item is counted once, via its subtask) — instead of Redmine's subtask-only average. Closing a subtask now updates the parent's % Done immediately. Issues **without** a checklist are untouched (core's normal derivation still applies).
+- Requires the standard core **`add_issues`** + **`manage_subtasks`** permissions (in addition to `manage_checklists`); the control is hidden when the user lacks them or the parent issue is closed.
+- New plugin setting **"Allow converting … while the parent issue is closed"** (off by default).
+
+### Notes
+- **One-way by design** — there is no subtask→item reverse (it would lose the issue's workflow, journals, and relations).
+- See [`docs/planning/feature-item-to-subtask.md`](docs/planning/feature-item-to-subtask.md) for the full spec and rationale.
+
+### Upgrade — ⚠️ run the migration
+This release adds columns (`checklist_items.converted_issue_id` / `converted_at` / `converted_by_id`). After extracting, run `bundle exec rake redmine:plugins:migrate RAILS_ENV=production NAME=redmine_checklist` and restart. To let members convert items, grant them Redmine's **Add issues** and **Manage subtasks** permissions.
+
+### Tested
+- 71 Playwright e2e tests (real Chrome). New `phase6-convert` spec covers the prefilled-form conversion + linked row + History, the done-state mirror on child close, the section/done guards, and the permission gate.
+
 ## [1.0.1] — 2026-06-29
 
 **Polish — completeness fixes.** No new user-facing features.

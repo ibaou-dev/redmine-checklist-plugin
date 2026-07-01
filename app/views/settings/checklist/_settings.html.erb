@@ -27,6 +27,13 @@
   <label for="settings_enforce_mandatory"><%= l(:setting_enforce_mandatory) %></label>
 </p>
 <p>
+  <%= hidden_field_tag 'settings[allow_convert_parent_closed]', '0', id: nil %>
+  <%= check_box_tag 'settings[allow_convert_parent_closed]', '1',
+                    ['true', '1', true].include?(settings['allow_convert_parent_closed']),
+                    id: 'settings_allow_convert_parent_closed' %>
+  <label for="settings_allow_convert_parent_closed"><%= l(:setting_allow_convert_parent_closed) %></label>
+</p>
+<p>
   <label for="settings_enforce_statuses"><%= l(:setting_enforce_statuses) %></label><br>
   <input type="hidden" name="settings[enforce_statuses][]" value="">
   <%= select_tag 'settings[enforce_statuses][]',

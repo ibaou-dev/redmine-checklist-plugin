@@ -16,7 +16,8 @@ class ChecklistHistory
   # Lightweight struct to hold a checklist item's relevant fields.
   # We use Struct, NOT OpenStruct (gone in Rails 7.2 safe usage).
   ChecklistItemSnapshot = Struct.new(:id, :subject, :is_done, :is_section, :position,
-                                     :assignee_id, :due_date, :is_mandatory)
+                                     :assignee_id, :due_date, :is_mandatory,
+                                     :converted_issue_id)
 
   # --------------------------------------------------------------------------
   # Class helpers
@@ -26,7 +27,8 @@ class ChecklistHistory
   def self.from_records(records)
     records.map do |r|
       ChecklistItemSnapshot.new(r.id, r.subject, r.is_done, r.is_section, r.position,
-                                r.assignee_id, r.due_date&.to_s, r.is_mandatory)
+                                r.assignee_id, r.due_date&.to_s, r.is_mandatory,
+                                r.converted_issue_id)
     end
   end
 
@@ -39,7 +41,7 @@ class ChecklistHistory
     parsed.map do |h|
       ChecklistItemSnapshot.new(
         h['id'], h['subject'], h['is_done'], h['is_section'], h['position'],
-        h['assignee_id'], h['due_date'], h['is_mandatory']
+        h['assignee_id'], h['due_date'], h['is_mandatory'], h['converted_issue_id']
       )
     end
   rescue JSON::ParserError
@@ -57,7 +59,8 @@ class ChecklistHistory
         position:     item.respond_to?(:position) ? item.position : 0,
         assignee_id:  item.respond_to?(:assignee_id) ? item.assignee_id : nil,
         due_date:     (item.due_date.to_s if item.respond_to?(:due_date) && item.due_date.present?),
-        is_mandatory: item.respond_to?(:is_mandatory) ? item.is_mandatory : nil
+        is_mandatory: item.respond_to?(:is_mandatory) ? item.is_mandatory : nil,
+        converted_issue_id: item.respond_to?(:converted_issue_id) ? item.converted_issue_id : nil
       }
     end.to_json
   end
@@ -110,8 +113,12 @@ class ChecklistHistory
     mandatory_changed = shared_ids.select { |id| !!was_map[id].is_mandatory != !!become_map[id].is_mandatory }
                                   .map    { |id| { subject: become_map[id].subject, mandatory: !!become_map[id].is_mandatory } }
 
+    converted = shared_ids.select { |id| was_map[id].converted_issue_id.blank? && become_map[id].converted_issue_id.present? }
+                          .map    { |id| { subject: become_map[id].subject, to: become_map[id].converted_issue_id } }
+
     { done: done, undone: undone, added: added, removed: removed, renamed: renamed,
-      reassigned: reassigned, due_changed: due_changed, mandatory_changed: mandatory_changed }
+      reassigned: reassigned, due_changed: due_changed, mandatory_changed: mandatory_changed,
+      converted: converted }
   end
 
   # True when the before/after snapshots are equivalent across every tracked

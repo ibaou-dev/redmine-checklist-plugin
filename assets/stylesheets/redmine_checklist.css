@@ -295,14 +295,35 @@
    #checklist-panel so it outranks the theme's `#content a { color: … }`. */
 #checklist-panel .checklist-edit,
 #checklist-panel .checklist-expand,
+#checklist-panel a.checklist-convert,
 #checklist-panel a.checklist-delete {
   color: var(--secondary-text-color, #888);
 }
 
 #checklist-panel .checklist-edit:hover,
 #checklist-panel .checklist-expand:hover,
+#checklist-panel a.checklist-convert:hover,
 #checklist-panel a.checklist-delete:hover {
   color: var(--link-color, #169);
+}
+
+/* Converted (locked) rows — the item was promoted to a child issue. Muted, with
+   a subtask arrow and the linked issue + its status shown on the meta line. */
+#checklist-panel .checklist-converted {
+  opacity: 0.9;
+}
+#checklist-panel .checklist-converted-icon {
+  color: var(--secondary-text-color, #888);
+  margin-right: 4px;
+}
+#checklist-panel .checklist-converted.is-done .checklist-item-text {
+  text-decoration: line-through;
+  color: var(--secondary-text-color, #888);
+}
+#checklist-panel .checklist-converted-status {
+  margin-left: 6px;
+  font-size: 0.85em;
+  color: var(--secondary-text-color, #888);
 }
 
 /* Clickable row body (manage users) — pointer cursor invites expand/collapse */

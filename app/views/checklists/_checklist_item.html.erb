@@ -23,6 +23,19 @@
       </span>
     <% end %>
   </li>
+<% elsif item.converted? %>
+  <%# Converted (locked) row — the item's truth now lives in the child issue.
+      Done-state mirrors the subtask (closed => done). No checkbox/edit/delete. %>
+  <li class="checklist-item checklist-converted <%= 'is-done' if item.effective_done? %>"
+      id="checklist-item-<%= item.id %>"
+      data-id="<%= item.id %>">
+    <span class="checklist-converted-icon" aria-hidden="true">&#8626;</span>
+    <span class="checklist-item-text"><%= item.subject %></span>
+    <span class="checklist-item-meta checklist-converted-meta">
+      <span class="checklist-converted-link">&rarr; <%= link_to_issue(item.converted_issue, subject: false) %></span>
+      <span class="checklist-converted-status"><%= item.converted_issue.status.name %></span>
+    </span>
+  </li>
 <% else %>
   <li class="checklist-item <%= 'is-done' if item.done? %> <%= 'checklist-expandable' if can_manage %>"
       id="checklist-item-<%= item.id %>"
@@ -66,6 +79,13 @@
 
     <% if can_manage %>
       <span class="checklist-item-actions">
+        <% if !item.done? && @issue.checklist_convert_allowed? %>
+          <%= link_to sprite_icon('arrow-right', l(:button_convert_to_subtask), icon_only: true),
+                      convert_issue_checklist_item_path(@issue, item),
+                      class: 'checklist-convert',
+                      title: l(:button_convert_to_subtask),
+                      'aria-label': l(:button_convert_to_subtask) %>
+        <% end %>
         <button type="button"
                 class="checklist-expand"
                 aria-expanded="false"

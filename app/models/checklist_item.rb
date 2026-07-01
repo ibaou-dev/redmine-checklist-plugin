@@ -1,8 +1,10 @@
 class ChecklistItem < ApplicationRecord
   belongs_to :issue
-  belongs_to :author,       class_name: 'User', optional: true
-  belongs_to :assignee,     class_name: 'User', optional: true, foreign_key: :assignee_id
-  belongs_to :completed_by, class_name: 'User', optional: true, foreign_key: :completed_by_id
+  belongs_to :author,          class_name: 'User',  optional: true
+  belongs_to :assignee,        class_name: 'User',  optional: true, foreign_key: :assignee_id
+  belongs_to :completed_by,    class_name: 'User',  optional: true, foreign_key: :completed_by_id
+  belongs_to :converted_by,    class_name: 'User',  optional: true, foreign_key: :converted_by_id
+  belongs_to :converted_issue, class_name: 'Issue', optional: true, foreign_key: :converted_issue_id
 
   validates :subject,  presence: true, length: { maximum: 1000 }
   validates :position, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
@@ -23,6 +25,23 @@ class ChecklistItem < ApplicationRecord
   def section?   = is_section?
   def mandatory? = is_mandatory?
 
+  # True when this item has been promoted to a child issue AND that issue still
+  # exists. A converted item's truth lives in the issue, so it is rendered as a
+  # locked linked row and its completion mirrors the subtask (see effective_done?).
+  # Guards against a dangling link if the child issue was later deleted.
+  def converted?
+    converted_issue_id.present? && converted_issue.present?
+  end
+
+  # Completion as it should count toward progress / done-ratio / enforcement.
+  # For a converted item this mirrors the child issue's closed state (the issue
+  # is authoritative once created); otherwise it is the raw is_done flag.
+  def effective_done?
+    return converted_issue.closed? if converted?
+
+    is_done?
+  end
+
   def counts_toward_progress?
     !is_section?
   end
@@ -37,13 +56,21 @@ class ChecklistItem < ApplicationRecord
   # -----------------------------------------------------------------------
   # done_ratio recalculation
   # -----------------------------------------------------------------------
-  # Recalculates and persists `done_ratio` on the parent issue using ONLY
-  # checklist tasks (sections are excluded).
+  # Recalculates and persists `done_ratio` on the issue from the COMBINED set of
+  # checklist items and subtasks — they are the sources of truth together.
+  #
+  # Units (equal-weight), without double-counting:
+  #   * each checklist task NOT converted to a subtask  → done when is_done
+  #   * each direct subtask (child issue)               → done when closed?
+  # A converted checklist item is represented by its subtask (counted on the
+  # subtask side), so it is excluded from the checklist side.
   #
   # Guards:
   #   - Setting.issue_done_ratio must be 'issue_field'
   #   - plugin setting affect_done_ratio must be truthy ('1'/'true')
-  #   - There must be at least one task item (non-section)
+  #   - the issue must HAVE a checklist (>=1 non-section item); otherwise the
+  #     plugin stays out and lets Redmine core handle done_ratio (incl. its own
+  #     subtask derivation).
   #
   # Uses `update_all` (no callbacks, no journal) on a fresh query.
   def self.recalc_done_ratio(issue_id)
@@ -54,13 +81,20 @@ class ChecklistItem < ApplicationRecord
     issue = Issue.find_by(id: issue_id)
     return unless issue
 
-    tasks = issue.checklist_items.tasks.to_a
-    return if tasks.empty?
+    checklist_tasks = issue.checklist_items.reject(&:is_section?)
+    return if checklist_tasks.empty?
 
-    total    = tasks.size
-    done_cnt = tasks.count(&:is_done?)
+    # Exclude only items whose subtask still exists (converted?); a converted item
+    # whose child issue was later deleted reverts to a normal countable task.
+    plain_tasks = checklist_tasks.reject(&:converted?)
+    subtasks    = issue.children.to_a
+
+    total = plain_tasks.size + subtasks.size
+    return if total.zero?
+
+    done = plain_tasks.count(&:is_done?) + subtasks.count(&:closed?)
     # Integer formula: rounds to nearest 10% (matches reference plugin)
-    ratio = (done_cnt * 10) / total * 10
+    ratio = (done * 10) / total * 10
 
     Issue.where(id: issue_id).update_all(done_ratio: ratio)
   rescue StandardError => e

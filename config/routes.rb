@@ -2,6 +2,7 @@ resources :issues do
   resources :checklist_items, only: [:index, :create, :update, :destroy] do
     member do
       patch :done
+      get   :convert
     end
     collection do
       post :reorder

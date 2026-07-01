@@ -8,7 +8,7 @@ class ChecklistItemsController < ApplicationController
   helper :avatars
 
   before_action :find_issue
-  before_action :find_checklist_item, only: [:update, :destroy, :done]
+  before_action :find_checklist_item, only: [:update, :destroy, :done, :convert]
   before_action :authorize
 
   accept_api_auth :index, :create, :update, :destroy, :reorder, :done, :apply_template
@@ -131,6 +131,30 @@ class ChecklistItemsController < ApplicationController
     end
   end
 
+  # GET /issues/:issue_id/checklist_items/:id/convert
+  # Requires: manage_checklists (this action) + add_issues + manage_subtasks.
+  # Promotes a checklist task into a child issue by redirecting the user to the
+  # standard new-issue form, prefilled from the item, carrying a signed token so
+  # the created issue is linked back on save (see RedmineChecklist::Conversion).
+  def convert
+    unless convertible?(@checklist_item)
+      flash[:error] = l(:error_convert_not_allowed)
+      redirect_to issue_path(@issue)
+      return
+    end
+
+    token = RedmineChecklist.convert_verifier.generate(
+      { 'item' => @checklist_item.id, 'issue' => @issue.id, 'user' => User.current.id },
+      expires_in: 30.minutes
+    )
+
+    issue_attrs = { subject: @checklist_item.subject, parent_issue_id: @issue.id }
+    issue_attrs[:assigned_to_id] = @checklist_item.assignee_id if @checklist_item.assignee_id.present?
+    issue_attrs[:due_date]       = @checklist_item.due_date    if @checklist_item.due_date.present?
+
+    redirect_to new_project_issue_path(@project, issue: issue_attrs, checklist_item_token: token)
+  end
+
   # POST /issues/:issue_id/checklist_items/reorder(.js|.json)
   # Requires: manage_checklists
   def reorder
@@ -167,6 +191,16 @@ class ChecklistItemsController < ApplicationController
 
     cfg = ChecklistProjectSetting.effective_for(@issue.project)
     cfg[:enabled] && cfg[:status_ids].include?(@issue.status_id.to_s)
+  end
+
+  # True when +item+ may be promoted to a subtask: it is an open task (not a
+  # section, not already done, not already converted), and the issue-level gate
+  # (permissions + parent open) is satisfied. Issue-level logic lives on the
+  # model (Issue#checklist_convert_allowed?) so the view hook can reuse it.
+  def convertible?(item)
+    return false if item.is_section? || item.done? || item.converted?
+
+    @issue.checklist_convert_allowed?
   end
 
   # Params for the create action: subject, is_section, position only

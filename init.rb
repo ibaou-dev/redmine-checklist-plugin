@@ -2,7 +2,7 @@ Redmine::Plugin.register :redmine_checklist do
   name        'Redmine Checklist'
   author      'ibaou-dev'
   description 'Checklist management for Redmine issues'
-  version     '1.0.1'
+  version     '1.1.0'
   url         'https://github.com/ibaou-dev/redmine-checklist-plugin'
   author_url  'https://github.com/ibaou-dev'
 
@@ -13,7 +13,8 @@ Redmine::Plugin.register :redmine_checklist do
     'affect_done_ratio'  => false,
     'save_log'           => true,
     'enforce_mandatory'  => false,
-    'enforce_statuses'   => []
+    'enforce_statuses'   => [],
+    'allow_convert_parent_closed' => false
   }, partial: 'settings/checklist/settings'
 
   Redmine::AccessControl.map do |map|
@@ -29,7 +30,7 @@ Redmine::Plugin.register :redmine_checklist do
 
       # manage_checklists: full create/edit/delete/reorder/apply_template
       map.permission :manage_checklists,
-                     { checklist_items: [:create, :update, :destroy, :reorder, :apply_template] },
+                     { checklist_items: [:create, :update, :destroy, :reorder, :apply_template, :convert] },
                      require: :member
 
       # manage_checklist_templates: CRUD on templates scoped to this project

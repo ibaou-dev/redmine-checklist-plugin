@@ -113,6 +113,27 @@ module RedmineChecklist
               label = change[:mandatory] ? l(:label_checklist_marked_mandatory) : l(:label_checklist_unmarked_mandatory)
               strings << checklist_meta_change_string(change[:subject], label, no_html)
             end
+
+            diff[:converted].each do |change|
+              if no_html
+                label = l(:label_checklist_converted, issue: "##{change[:to]}")
+                strings << "#{l(:label_checklist)}: #{change[:subject]} — #{label}"
+              else
+                child = Issue.find_by(id: change[:to])
+                issue_link = child ? link_to_issue(child) : "##{change[:to]}"
+                # Only the (already-escaped) issue link is interpolated here — no other
+                # user data — so marking the interpolated result html_safe is safe.
+                label = l(:label_checklist_converted, issue: issue_link).html_safe
+                strings << content_tag(:span, class: 'checklist-journal-meta') do
+                  safe_join([
+                    content_tag(:strong, "#{l(:label_checklist)}: "),
+                    change[:subject],
+                    ' ',
+                    content_tag(:span, "(#{label})".html_safe, class: 'checklist-journal-note')
+                  ])
+                end
+              end
+            end
           rescue StandardError => e
             Rails.logger.error("ChecklistHistory render error: #{e.message}")
           end
