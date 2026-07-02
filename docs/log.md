@@ -2,6 +2,14 @@
 
 All notable changes to this docs bundle.
 
+## 2026-07-02 — v1.2.1 (bug fixes & UX polish)
+
+- **Delete-last-item done-ratio bug.** `recalc_done_ratio` used to `return` early when no checklist tasks remained, leaving a stale `done_ratio`. Now the empty case resets to 0 (leaf) or recomputes from subtasks (combining on + children), and `_done_ratio_sync.js.erb` guards on the new `ChecklistItem.affects_done_ratio?` (not `checklist_drives_done_ratio?`) so the reset shows live even with no checklist left.
+- **Unlink/reparent edge case.** `converted?` now also requires `converted_issue.parent_id == issue_id`. Unlinking (parent_id→nil), reparenting, or deleting the child reverts the item to a normal, counted, editable row (re-linking restores it) — previously an unlinked subtask kept showing "→ #N" while silently dropping out of the done-ratio (jumping to 100%). Runner-verified unlink→50 (not 100), relink→restored; browser regression in `phase6-convert`.
+- **Quick-convert Subtasks refresh.** `convert_quick.js.erb` now re-renders core's `issues/subtasks` partial into `#issue_tree` (server-side rescue so a cross-controller render hiccup can't break the row swap; `@issue.reload` first so descendants are fresh).
+- **Icon/cursor polish.** Expand chevron moved to sit right after the drag handle (still toggles; row-click handler already excludes `button`); drag handle cursor → `ns-resize` (up/down).
+- New `phase10-polish` spec + unlink regression in `phase6`. Also added research doc `docs/planning/feature-checklist-in-queries.md` (assignee/due filters — feasible via `sql_for_<field>_field` subqueries; calendar/Gantt placement needs core-internals patching → out).
+
 ## 2026-07-01 — v1.2.0 (quick convert, notifications, checklist due dates, done-ratio hardening)
 
 - **Quick convert.** Second row icon (`chevrons-right`) → `POST convert_quick` (`checklist-quick-convert`, remote). Builds the child on the **parent's tracker** + default status (`build_quick_subtask`), carries subject + (if assignable) assignee + due, `child.save`; on success `RedmineChecklist::Conversion.attach!` links + journals and `convert_quick.js.erb` swaps the row to the locked converted row in place (+ done_ratio/history sync). On validation failure → `convert_fallback.js.erb` navigates to the prefilled form. Refactored `Conversion` to share `attach!(item, issue)` between the token flow (`link!`) and quick flow. New permission action `:convert_quick`.

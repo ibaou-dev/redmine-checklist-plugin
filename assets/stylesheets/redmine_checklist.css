@@ -81,7 +81,8 @@
 }
 
 .checklist-handle {
-  cursor: grab;
+  /* Vertical (up/down) reorder affordance */
+  cursor: ns-resize;
   color: var(--border-color, #ccc);
   user-select: none;
   flex-shrink: 0;

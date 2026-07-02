@@ -4,6 +4,18 @@ All notable changes to the Redmine Checklist plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.2.1] — 2026-07-02
+
+**Bug fixes & UX polish.**
+
+### Fixed
+- **Deleting the last checklist item now updates the issue "% Done".** Previously, removing the final item left a stale done-ratio (e.g. stuck at 100%); it now resets (or, when subtasks exist and combining is on, recomputes from them). Add/check/uncheck already updated it — delete now does too.
+- **Unlinking (or reparenting) a converted subtask now reverts its checklist item.** When a subtask created from a checklist item is unlinked from its parent (Redmine's "unlink"), or reparented elsewhere, the item no longer keeps showing as a locked "→ #N" link while silently dropping out of the progress — it reverts to a normal, editable, counted checklist row (and re-linking restores the converted state).
+
+### Changed
+- After a **one-click quick convert**, the new subtask appears in the issue's **Subtasks** list immediately, without a page reload.
+- The **expand/collapse chevron** now sits right after the drag handle, and the drag handle shows an up/down (reorder) cursor on hover.
+
 ## [1.2.0] — 2026-07-01
 
 **Quick convert, assignment notifications, checklist due dates, and done-ratio hardening.**

@@ -43,6 +43,10 @@
 
     <% if can_manage %>
       <span class="checklist-handle" aria-label="<%= l(:label_checklist_drag_to_reorder) %>">&#8942;</span>
+      <button type="button"
+              class="checklist-expand"
+              aria-expanded="false"
+              aria-label="<%= l(:label_checklist_item_details) %>"><%= sprite_icon('angle-right', l(:label_checklist_item_details), icon_only: true) %></button>
     <% end %>
 
     <%= check_box_tag "checklist_item[is_done]",
@@ -93,10 +97,6 @@
                       title: l(:button_convert_to_subtask),
                       'aria-label': l(:button_convert_to_subtask) %>
         <% end %>
-        <button type="button"
-                class="checklist-expand"
-                aria-expanded="false"
-                aria-label="<%= l(:label_checklist_item_details) %>"><%= sprite_icon('angle-right', l(:label_checklist_item_details), icon_only: true) %></button>
         <a href="#"
            class="checklist-edit"
            aria-label="<%= l(:label_checklist_edit_item) %>"

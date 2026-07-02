@@ -223,9 +223,15 @@ Model: `belongs_to :converted_issue, class_name: 'Issue', optional: true`.
 On the child issue side, no schema change — the parent link is native
 (`parent_id`); we find "items that spawned me" via `converted_issue_id`.
 
-**Edge — subtask deleted later:** if the linked issue is destroyed, the item
-should revert to a normal (unlocked, not-done) item. Handle via a nullify hook or
-a render-time guard (`converted_issue` missing ⇒ treat as unconverted).
+**Edge — link no longer valid (deleted / unlinked / reparented):** `converted?` is
+a render-time guard requiring the child to still exist **and** still be a child of
+this item's issue (`converted_issue.parent_id == issue_id`). So if the subtask is
+destroyed, **unlinked** from the parent (Redmine's "unlink" sets `parent_id` to
+nil), or **reparented** elsewhere, the item automatically reverts to a normal,
+editable, is_done-counted checklist row — keeping the display and the done-ratio
+consistent (the item is no longer excluded from `plain_tasks`, and the now-detached
+issue is no longer in `children`, so it's counted exactly once). Re-linking the
+child to the parent restores the converted state. *(Delivered — v1.2.1.)*
 
 ### 4.6 Interaction with existing features
 - **Mandatory enforcement.** If a *mandatory* item is converted, its mirrored

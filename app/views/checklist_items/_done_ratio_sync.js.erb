@@ -8,7 +8,7 @@
   memory is stale — read it fresh from the DB here. The show page renders the
   field as `div.attribute.progress > div.value` (label + progress_bar + .percent).
 %>
-<% if @issue.checklist_drives_done_ratio? %>
+<% if ChecklistItem.affects_done_ratio? %>
 <% fresh_ratio = Issue.where(id: @issue.id).pick(:done_ratio).to_i %>
 (function() {
   var cell = document.querySelector('.attribute.progress .value');

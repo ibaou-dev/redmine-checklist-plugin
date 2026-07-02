@@ -220,6 +220,7 @@ class ChecklistItemsController < ApplicationController
                       User.current.allowed_to?(:manage_checklists, @project)
         @can_manage = User.current.allowed_to?(:manage_checklists, @project)
         ChecklistItem.recalc_done_ratio(@issue.id)
+        @issue.reload # so the Subtasks tree (descendants) reflects the new child
         format.js   # convert_quick.js.erb
         format.json { render json: { converted_issue_id: child.id }, status: :created }
       else

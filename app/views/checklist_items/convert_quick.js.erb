@@ -18,6 +18,21 @@
     tmp2.innerHTML = <%= raw render('checklists/checklist_progress', issue: @issue).to_json %>;
     wrap.replaceWith(tmp2.firstElementChild);
   }
+
+  // Refresh the core "Subtasks" tree in place so the new child appears without
+  // a page reload. (#issue_tree is present because the user has manage_subtasks.)
+  // Rendered with a server-side rescue so a cross-controller render hiccup can't
+  // break the row swap — worst case the tree just isn't refreshed until reload.
+  <% subtasks_html = begin
+       render(partial: 'issues/subtasks')
+     rescue StandardError => e
+       Rails.logger.error("checklist subtasks refresh error: #{e.class}: #{e.message}")
+       nil
+     end %>
+  <% if subtasks_html %>
+  var tree = document.getElementById('issue_tree');
+  if (tree) { tree.innerHTML = <%= raw subtasks_html.to_json %>; }
+  <% end %>
 })();
 
 // Refresh core "% Done" + History in place

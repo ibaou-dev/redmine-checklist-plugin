@@ -148,6 +148,43 @@ test('quick convert: one click promotes to a subtask in place (no navigation)', 
 });
 
 // ---------------------------------------------------------------------------
+// 1d. Unlink edge case — unlinking the subtask reverts the item to a normal row
+// ---------------------------------------------------------------------------
+test('convert: unlinking the subtask from the parent reverts the item to a normal counted row', async ({ page }) => {
+  // A converted item (its subtask) + a plain done item → 50%.
+  ruby(`Setting.plugin_redmine_checklist={'show_progress_bar'=>'1','affect_done_ratio'=>'1','save_log'=>'1','subtask_done_ratio'=>'1'};
+        Setting.issue_done_ratio='issue_field';
+        i=Issue.find(${ISSUE_ID}); i.checklist_items.delete_all; Issue.where(parent_id:${ISSUE_ID}).destroy_all; i.update_columns(done_ratio:0);
+        i.checklist_items.create!(subject:'Plain done', position:0, is_done:true);
+        conv=i.checklist_items.create!(subject:'Converted one', position:1);
+        ds=i.tracker.default_status;
+        c=Issue.create!(project:i.project,tracker:i.tracker,author:User.find(1),subject:'Unlink me',status:ds,parent_issue_id:${ISSUE_ID});
+        conv.update_columns(converted_issue_id:c.id); ChecklistItem.recalc_done_ratio(${ISSUE_ID})`);
+
+  await login(page, 'admin', 'Test1234!');
+  await page.goto(`/issues/${ISSUE_ID}`);
+  await expect(page.locator('#checklist-items .checklist-converted')).toHaveCount(1); // linked
+
+  // Unlink the subtask from its parent (what Redmine's "unlink" does: parent_id → nil).
+  ruby(`Issue.where(parent_id:${ISSUE_ID}).first.update!(parent_id: nil)`);
+  await page.reload();
+
+  // The item reverts to a normal, editable, NOT-done checklist row.
+  await expect(page.locator('#checklist-items .checklist-converted')).toHaveCount(0);
+  const rows = page.locator('#checklist-items .checklist-item');
+  await expect(rows).toHaveCount(2);
+  await expect(page.locator('#checklist-items .checklist-checkbox')).toHaveCount(2); // both are normal rows now
+  // done_ratio reflects it as a not-done plain task: 1 done of 2 = 50 (NOT a silent 100).
+  expect(rubyOut(`print Issue.find(${ISSUE_ID}).done_ratio`)).toBe('50');
+  expect(rubyOut(`print Issue.find(${ISSUE_ID}).checklist_items.order(:position).last.converted?`)).toBe('false');
+
+  // cleanup the now-orphaned issue
+  ruby(`Issue.where(subject:'Unlink me').destroy_all;
+        Setting.plugin_redmine_checklist={'show_progress_bar'=>'1','save_log'=>'1'}`);
+  await logout(page);
+});
+
+// ---------------------------------------------------------------------------
 // 2. Done-state mirror — closing the child marks the item done / counts progress
 // ---------------------------------------------------------------------------
 test('convert: closing the child issue marks the converted item done and counts toward progress', async ({ page }) => {

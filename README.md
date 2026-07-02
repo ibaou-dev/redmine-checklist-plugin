@@ -2,7 +2,7 @@
 
 A checklist plugin for Redmine issues — add ordered, checkable items to any issue, with progress tracking, sections, templates, per-item assignment, and mandatory-item enforcement. Open-source (GPL-3.0), dependency-light (no proprietary gems), built and tested for **Redmine 6.x** (Rails 7.2, Ruby 3.x).
 
-> **Status:** **v1.2.0** — stable. The interactive single-issue checklist, change history,
+> **Status:** **v1.2.1** — stable. The interactive single-issue checklist, change history,
 > done-ratio integration, activity feed, search, reusable **templates**, **mandatory-item
 > enforcement** (global **or per-project**), **per-item assignment** (assignee/due date),
 > the optional **issue-list "Checklist" column**, and **converting an item into a subtask**
@@ -36,7 +36,7 @@ Real tasks contain small steps too lightweight for their own issue. This plugin 
 
 **Possible future work (see [roadmap](docs/planning/roadmap.md)):**
 
-- ⏳ Issue-list completion *filter*, multiline paste bulk-add, additional locale translations
+- ⏳ Checklist **assignee** and **due-date** filters for the issue list / saved queries (so issues surface by who/when their checklist items are assigned) — see [research](docs/planning/feature-checklist-in-queries.md)
 
 See the [feature matrix](docs/product/feature-matrix.md) for full scope and priorities.
 
@@ -59,7 +59,7 @@ The plugin directory must be named `redmine_checklist`.
 
 ```bash
 cd /path/to/redmine/plugins
-tar xzf redmine_checklist-1.2.0.tar.gz   # extracts redmine_checklist/
+tar xzf redmine_checklist-1.2.1.tar.gz   # extracts redmine_checklist/
 cd /path/to/redmine
 bundle exec rake redmine:plugins:migrate RAILS_ENV=production NAME=redmine_checklist
 # restart Redmine

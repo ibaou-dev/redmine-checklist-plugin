@@ -26,12 +26,20 @@ class ChecklistItem < ApplicationRecord
   def section?   = is_section?
   def mandatory? = is_mandatory?
 
-  # True when this item has been promoted to a child issue AND that issue still
-  # exists. A converted item's truth lives in the issue, so it is rendered as a
-  # locked linked row and its completion mirrors the subtask (see effective_done?).
-  # Guards against a dangling link if the child issue was later deleted.
+  # True when this item has been promoted to a child issue that still exists AND
+  # is still a child of this item's issue. A converted item's truth lives in the
+  # subtask, so it renders as a locked linked row and its completion mirrors the
+  # subtask (see effective_done?).
+  #
+  # Reverts to a normal (unconverted) item when the link is no longer valid — the
+  # child was deleted, unlinked from the parent ("unlink" sets parent_id to nil),
+  # or reparented elsewhere. In every such case the item goes back to a regular,
+  # editable, is_done-counted checklist row so the display and the done-ratio stay
+  # consistent with reality. (Re-linking the child restores the converted state.)
   def converted?
-    converted_issue_id.present? && converted_issue.present?
+    converted_issue_id.present? &&
+      converted_issue.present? &&
+      converted_issue.parent_id == issue_id
   end
 
   # Completion as it should count toward progress / done-ratio / enforcement.
@@ -83,6 +91,14 @@ class ChecklistItem < ApplicationRecord
     !['0', 'false'].include?(Setting.plugin_redmine_checklist['subtask_done_ratio'].to_s)
   end
 
+  # True when the plugin manages issue done_ratio at all (Redmine in issue-field
+  # mode + the affect_done_ratio setting on). Used to decide whether to keep the
+  # displayed "% Done" in sync after any checklist mutation.
+  def self.affects_done_ratio?
+    affect = Setting.plugin_redmine_checklist['affect_done_ratio'].to_s
+    Setting.issue_done_ratio == 'issue_field' && (affect == '1' || affect == 'true')
+  end
+
   # Opt-in (default OFF): count a subtask as a "done" unit once it reaches 100%
   # done_ratio even while still open, not only when its status is closed.
   def self.count_subtask_when_full?
@@ -106,7 +122,22 @@ class ChecklistItem < ApplicationRecord
     return unless issue
 
     checklist_tasks = issue.checklist_items.reject(&:is_section?)
-    return if checklist_tasks.empty?
+
+    if checklist_tasks.empty?
+      # No checklist tasks remain (e.g. the last item was just deleted). Don't
+      # leave a stale done_ratio behind:
+      #   * combining on + subtasks exist → drive from the subtasks;
+      #   * leaf issue (no subtasks)      → reset to 0;
+      #   * non-leaf with combining off   → leave it to Redmine core (don't touch).
+      if combine_subtasks? && issue.children.exists?
+        subs  = issue.children.to_a
+        ratio = (subs.count { |c| subtask_done?(c) } * 10) / subs.size * 10
+        Issue.where(id: issue_id).update_all(done_ratio: ratio)
+      elsif issue.leaf?
+        Issue.where(id: issue_id).update_all(done_ratio: 0)
+      end
+      return
+    end
 
     if combine_subtasks?
       # Combined universe: non-converted checklist tasks (is_done) + all direct
