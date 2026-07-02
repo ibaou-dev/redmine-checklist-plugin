@@ -44,6 +44,33 @@ test('panel: shows a "next checklist due" chip with the earliest open due date',
   await logout(page);
 });
 
+test('due propagation: setting a checklist item due date derives the issue due date (via the detail panel)', async ({ page }) => {
+  // Leaf issue, no subtasks, no manual due date, one item.
+  ruby(`Setting.plugin_redmine_checklist = Setting.plugin_redmine_checklist.merge('combine_checklist_due'=>'1');
+        i=Issue.find(${ISSUE_ID}); i.checklist_items.delete_all; Issue.where(parent_id:${ISSUE_ID}).destroy_all; i.update_columns(due_date:nil);
+        i.checklist_items.create!(subject:'Dated step', position:0)`);
+  const due = rubyOut(`print (Date.today+6).to_s`);
+
+  await login(page, 'admin', 'Test1234!');
+  await page.goto(`/issues/${ISSUE_ID}`);
+  expect(rubyOut(`print Issue.find(${ISSUE_ID}).due_date.inspect`)).toBe('nil');
+
+  // Set the item's due date via the expandable detail panel and save.
+  const row = page.locator('#checklist-items .checklist-item').first();
+  await row.locator('.checklist-expand').click();
+  const panel = row.locator('.checklist-item-details');
+  await expect(panel).toBeVisible();
+  await panel.locator('.checklist-detail-due').fill(due);
+  await panel.locator('.checklist-detail-save').click();
+  await page.waitForTimeout(1200);
+
+  // The issue's own due_date is now derived from the checklist item.
+  expect(rubyOut(`print Issue.find(${ISSUE_ID}).due_date&.to_s`)).toBe(due);
+
+  ruby(`Issue.find(${ISSUE_ID}).checklist_items.delete_all; Issue.find(${ISSUE_ID}).update_columns(due_date:nil)`);
+  await logout(page);
+});
+
 test('issue list: the "Checklist due" column shows the earliest open due date', async ({ page }) => {
   ruby(`i=Issue.find(${ISSUE_ID}); i.checklist_items.delete_all;
         i.checklist_items.create!(subject:'A', position:0, due_date: Date.today+7);

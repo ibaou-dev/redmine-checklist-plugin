@@ -27,6 +27,13 @@
   <label for="settings_count_subtask_when_full"><%= l(:setting_count_subtask_when_full) %></label>
 </p>
 <p>
+  <%= hidden_field_tag 'settings[combine_checklist_due]', '0', id: nil %>
+  <%= check_box_tag 'settings[combine_checklist_due]', '1',
+                    settings['combine_checklist_due'].to_s != '0',
+                    id: 'settings_combine_checklist_due' %>
+  <label for="settings_combine_checklist_due"><%= l(:setting_combine_checklist_due) %></label>
+</p>
+<p>
   <%= hidden_field_tag 'settings[save_log]', '0', id: nil %>
   <%= check_box_tag 'settings[save_log]', '1',
                     settings['save_log'].to_s != '0',
@@ -72,4 +79,11 @@
   <label for="settings_webhook_url"><%= l(:setting_webhook_url) %></label><br>
   <%= text_field_tag 'settings[webhook_url]', settings['webhook_url'],
                      id: 'settings_webhook_url', size: 60 %>
+</p>
+<p>
+  <%= hidden_field_tag 'settings[include_checklist_assignee]', '0', id: nil %>
+  <%= check_box_tag 'settings[include_checklist_assignee]', '1',
+                    settings['include_checklist_assignee'].to_s != '0',
+                    id: 'settings_include_checklist_assignee' %>
+  <label for="settings_include_checklist_assignee"><%= l(:setting_include_checklist_assignee) %></label>
 </p>

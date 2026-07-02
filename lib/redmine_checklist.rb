@@ -8,6 +8,14 @@ module RedmineChecklist
     Rails.application.message_verifier('redmine_checklist/convert')
   end
 
+  # Kill-switch (default ON): fold checklist-item assignees into Redmine's native
+  # "assigned to" filter so an issue surfaces in "Issues assigned to me" when the
+  # user has a checklist item on it — not just when the issue itself is theirs.
+  # Off only when the setting is explicitly '0'/'false'.
+  def self.include_checklist_assignee?
+    !['0', 'false'].include?(Setting.plugin_redmine_checklist['include_checklist_assignee'].to_s)
+  end
+
   # Completes an item -> subtask conversion after the child issue is saved.
   # Verifies the signed token, then (idempotently, with a parent-link sanity
   # check) stamps the conversion columns on the checklist item and journals it.

@@ -2,7 +2,7 @@
 type: Feature Spec
 title: Research — Checklist assignee & due date in issue queries, calendar & Gantt
 description: What it takes to make an issue surface in assignee-based and due-date-based views (queries, "assigned to me", calendar, Gantt) because of its CHECKLIST items, not just the issue's own fields. Grounded in Redmine 6.1 query/calendar internals.
-status: draft
+status: accepted
 tags: [research, queries, filters, calendar, gantt, assignee, due-date]
 timestamp: 2026-07-02T10:00:00Z
 relates-to:
@@ -12,6 +12,22 @@ relates-to:
 ---
 
 # Research — Surface issues by their checklist items in queries / calendar / Gantt
+
+> **Delivered in v1.3.0 (2026-07-02):** item 1 (assignee) shipped as a **fold into
+> the native Assignee filter, ON by default** (product-owner decision — a checklist
+> assignment IS an assignment; opt-out only, via a kill-switch) rather than the
+> default-off / separate-filter framing originally floated in §2. Item 2 shipped as
+> a separate **"Checklist due" filter** + the existing sortable column, plus a
+> "Checklist assignees" column and an index on `checklist_items.assignee_id`.
+>
+> **Calendar/Gantt — solved a better way (v1.3.0):** rather than patching the core
+> Calendar/Gantt widgets (§3, rejected as fragile), the plugin now **derives the
+> issue's own `due_date`** from its checklist items — combined with subtasks,
+> latest-wins, exactly like Redmine derives a parent's due from its children
+> (`ChecklistItem.recalc_due_date`, setting `combine_checklist_due`, default on).
+> Because the issue genuinely gets a `due_date`, it appears in Calendar, Gantt,
+> due-date reminders, and the built-in due filter **natively** — no core-widget
+> surgery. Checklist items contribute a due date only (no start date).
 
 Two asks:
 

@@ -4,6 +4,30 @@ All notable changes to the Redmine Checklist plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.3.0] — 2026-07-02
+
+**Find your checklist work with the filters you already use.** A checklist item assigned to you now makes the issue "yours" everywhere Redmine looks up assignments — no more shadow assignments.
+
+### Added
+- **Checklist assignees fold into the native "Assignee" filter (on by default).** An issue shows up in **"Issues assigned to me"** — and in any `assigned_to = X` query, saved query, My-Page block, or API call — when you have a **checklist item** on it, even if the issue itself is assigned to someone else. All operators are handled (*is* / *is not* / *any* / *none*) and "me"/groups work as usual. A **kill-switch setting** (default on) restores Redmine's stock behavior if ever needed.
+- **"Checklist assignees" column** for the issue list / queries — shows the per-item owners (the native Assignee column still shows the issue's own assignee).
+- **"Checklist due" filter** — filter issues by their checklist items' due dates (overdue, this week, before a date, …), complementing the sortable "Checklist due" column from v1.2.0.
+- **Checklist due dates drive the issue's own due date (on by default).** Just like subtasks, an issue's `due_date` is now derived as the **latest** of its subtask due dates **and** its (open, non-converted) checklist item due dates. This means checklist deadlines show up **natively** in the **Calendar** and **Gantt**, in due-date reminders, and in the built-in due-date filter — the issue genuinely has a due date. It recomputes as items/subtasks are added, changed, completed, or removed, and (mirroring core's behavior when a parent loses its last subtask) leaves the last value in place when the last source is removed. A **kill-switch setting** (default on) turns it off. *(Checklist items contribute a due date only — start dates are left to core.)*
+
+### Upgrade — ⚠️ run the migration
+Adds an index (`checklist_items.assignee_id`) that backs the new assignee filtering:
+```
+bundle exec rake redmine:plugins:migrate RAILS_ENV=production NAME=redmine_checklist
+```
+then restart Redmine. No behavior is opt-in except via the kill-switch; the assignee fold is **on** after upgrade.
+
+### Notes
+- The **Assignee column / group-by-assignee** still reflect the issue's own assignee (the column = who owns the issue); the new "Checklist assignees" column surfaces the per-item owners. The *filter* is what includes checklist assignees.
+- Not folded into core: the **due-date** filter is a separate "Checklist due" filter (not merged into Redmine's `due_date` filter) — checklist deadlines are surfaced without changing issue-scheduling semantics.
+
+### Tested
+Playwright e2e (real Chrome): new `phase11-queries` spec (assignee fold + kill-switch, assignees column, due filter). All operators + kill-switch also verified at the query level.
+
 ## [1.2.1] — 2026-07-02
 
 **Bug fixes & UX polish.**

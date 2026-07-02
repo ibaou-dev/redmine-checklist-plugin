@@ -2,7 +2,7 @@ Redmine::Plugin.register :redmine_checklist do
   name        'Redmine Checklist'
   author      'ibaou-dev'
   description 'Checklist management for Redmine issues'
-  version     '1.2.1'
+  version     '1.3.0'
   url         'https://github.com/ibaou-dev/redmine-checklist-plugin'
   author_url  'https://github.com/ibaou-dev'
 
@@ -13,12 +13,14 @@ Redmine::Plugin.register :redmine_checklist do
     'affect_done_ratio'  => false,
     'subtask_done_ratio' => true,
     'count_subtask_when_full' => false,
+    'combine_checklist_due' => true,
     'save_log'           => true,
     'enforce_mandatory'  => false,
     'enforce_statuses'   => [],
     'allow_convert_parent_closed' => false,
     'notify_on_assignment' => false,
-    'webhook_url'          => ''
+    'webhook_url'          => '',
+    'include_checklist_assignee' => true
   }, partial: 'settings/checklist/settings'
 
   Redmine::AccessControl.map do |map|

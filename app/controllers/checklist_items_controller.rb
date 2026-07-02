@@ -34,7 +34,7 @@ class ChecklistItemsController < ApplicationController
     respond_to do |format|
       if @checklist_item.save
         record_checklist_journal(snapshot_before)
-        ChecklistItem.recalc_done_ratio(@issue.id)
+        ChecklistItem.recalc_issue(@issue.id)
         format.js
         format.json { render json: @checklist_item, status: :created }
       else
@@ -69,7 +69,7 @@ class ChecklistItemsController < ApplicationController
 
     if created.positive?
       record_checklist_journal(snapshot_before)
-      ChecklistItem.recalc_done_ratio(@issue.id)
+      ChecklistItem.recalc_issue(@issue.id)
     end
 
     @checklist_items = @issue.checklist_items.reload.ordered
@@ -91,7 +91,7 @@ class ChecklistItemsController < ApplicationController
     respond_to do |format|
       if @checklist_item.update(manage_checklist_item_params)
         record_checklist_journal(snapshot_before)
-        ChecklistItem.recalc_done_ratio(@issue.id)
+        ChecklistItem.recalc_issue(@issue.id)
         format.js
         format.json { render json: @checklist_item }
       else
@@ -122,7 +122,7 @@ class ChecklistItemsController < ApplicationController
     respond_to do |format|
       if @checklist_item.update(is_done: new_done)
         record_checklist_journal(snapshot_before)
-        ChecklistItem.recalc_done_ratio(@issue.id)
+        ChecklistItem.recalc_issue(@issue.id)
         format.js
         format.json { render json: @checklist_item }
       else
@@ -139,7 +139,7 @@ class ChecklistItemsController < ApplicationController
 
     @checklist_item.destroy
     record_checklist_journal(snapshot_before)
-    ChecklistItem.recalc_done_ratio(@issue.id)
+    ChecklistItem.recalc_issue(@issue.id)
 
     respond_to do |format|
       format.js
@@ -156,7 +156,7 @@ class ChecklistItemsController < ApplicationController
     snapshot_before = @issue.checklist_items.ordered.to_a
     template.apply_to(@issue, User.current)
     record_checklist_journal(snapshot_before)
-    ChecklistItem.recalc_done_ratio(@issue.id)
+    ChecklistItem.recalc_issue(@issue.id)
 
     # Reload checklist state for the JS response
     @checklist_items = @issue.checklist_items.reload.ordered
@@ -219,7 +219,7 @@ class ChecklistItemsController < ApplicationController
         @can_done   = User.current.allowed_to?(:done_checklists,   @project) ||
                       User.current.allowed_to?(:manage_checklists, @project)
         @can_manage = User.current.allowed_to?(:manage_checklists, @project)
-        ChecklistItem.recalc_done_ratio(@issue.id)
+        ChecklistItem.recalc_issue(@issue.id)
         @issue.reload # so the Subtasks tree (descendants) reflects the new child
         format.js   # convert_quick.js.erb
         format.json { render json: { converted_issue_id: child.id }, status: :created }

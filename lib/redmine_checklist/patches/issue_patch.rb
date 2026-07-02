@@ -8,7 +8,9 @@ module RedmineChecklist
 
         base.after_create  :apply_default_checklist_template
         base.after_save    :checklist_recalc_parent_done_ratio
+        base.after_save    :checklist_recalc_parent_due_date
         base.after_destroy :checklist_recalc_parent_done_ratio_on_destroy
+        base.after_destroy :checklist_recalc_parent_due_date_on_destroy
         base.validate      :checklist_mandatory_items_satisfied
 
         # Prepend the done_ratio override so it can call super() through to core.
@@ -107,6 +109,32 @@ module RedmineChecklist
         Rails.logger.error("checklist parent done_ratio recalc (destroy) error: #{e.message}")
       end
 
+      # after_save: a subtask whose due date or parent changed can move its
+      # parent's combined (checklist + subtask) due date. Core already recomputes
+      # the pure subtask part on child save; this re-extends it with the parent's
+      # checklist due (recalc_due_date recomputes both fresh + propagates upward).
+      def checklist_recalc_parent_due_date
+        return unless ChecklistItem.combine_checklist_due?
+        return unless saved_change_to_due_date? || saved_change_to_parent_id?
+
+        ChecklistItem.recalc_due_date(parent_id) if parent_id
+        if saved_change_to_parent_id?
+          old_parent = saved_change_to_parent_id.first
+          ChecklistItem.recalc_due_date(old_parent) if old_parent && old_parent != parent_id
+        end
+      rescue StandardError => e
+        Rails.logger.error("checklist parent due_date recalc error: #{e.message}")
+      end
+
+      # after_destroy: removing a subtask changes its parent's derived due date.
+      def checklist_recalc_parent_due_date_on_destroy
+        return unless ChecklistItem.combine_checklist_due?
+
+        ChecklistItem.recalc_due_date(parent_id) if parent_id
+      rescue StandardError => e
+        Rails.logger.error("checklist parent due_date recalc (destroy) error: #{e.message}")
+      end
+
       # Issue-level gate for promoting checklist items to subtasks: the user can
       # manage checklists AND create child issues (add_issues + manage_subtasks),
       # and the issue is open (unless the plugin setting permits a closed parent).
@@ -119,6 +147,14 @@ module RedmineChecklist
                             user.allowed_to?(:manage_subtasks,  project)
 
         Setting.plugin_redmine_checklist['allow_convert_parent_closed'].to_s == '1' || !closed?
+      end
+
+      # Distinct users assigned to this issue's (non-section) checklist items.
+      # Drives the "Checklist assignees" query column, so the per-item owners are
+      # visible/point-at-able even though the core Assignee column shows the issue
+      # owner. Returns an array of Users.
+      def checklist_assignees
+        checklist_items.reject(&:is_section?).filter_map(&:assignee).uniq
       end
 
       # Earliest due date among this issue's OPEN, non-converted checklist items

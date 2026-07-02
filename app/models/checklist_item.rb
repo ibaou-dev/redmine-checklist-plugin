@@ -166,6 +166,56 @@ class ChecklistItem < ApplicationRecord
     Rails.logger.error("ChecklistItem.recalc_done_ratio error: #{e.class}: #{e.message}")
   end
 
+  # Recompute both plugin-derived issue attributes after a checklist change.
+  def self.recalc_issue(issue_id)
+    recalc_done_ratio(issue_id)
+    recalc_due_date(issue_id)
+  end
+
+  # Whether checklist due dates are combined into the issue's due date (default ON).
+  def self.combine_checklist_due?
+    !['0', 'false'].include?(Setting.plugin_redmine_checklist['combine_checklist_due'].to_s)
+  end
+
+  # Derive the issue's due_date from its checklist + subtasks, mirroring how
+  # Redmine derives a parent's due date from subtasks — combined:
+  #   issue.due_date = max(latest open non-converted checklist item due,
+  #                        subtask-derived due [children.maximum(:due_date)])
+  # Checklist items only contribute a DUE date (they have no start date), so
+  # start_date is left entirely to core. Recomputed fresh each call, so it grows
+  # and shrinks correctly. When there is NO contribution (no checklist due and no
+  # subtask derivation) the value is left untouched — so removing the last source
+  # leaves the last derived value in place, exactly like core does when a parent
+  # loses its last subtask. Propagates up so an ancestor's due follows. Uses
+  # update_all (no callbacks/journal), like recalc_done_ratio.
+  def self.recalc_due_date(issue_id)
+    return unless combine_checklist_due?
+    return unless issue_id
+
+    issue = Issue.find_by(id: issue_id)
+    return unless issue
+
+    # Latest open, non-converted checklist item due (converted items are subtasks,
+    # counted on the subtask side; done items' deadlines are already met).
+    cl_due = issue.checklist_items
+                  .reject { |i| i.is_section? || i.converted? || i.effective_done? }
+                  .filter_map(&:due_date).max
+    # Subtask-derived due — only when core itself would derive it.
+    sub_due = if !issue.leaf? && Setting.parent_issue_dates == 'derived'
+                issue.children.maximum(:due_date)
+              end
+
+    combined = [cl_due, sub_due].compact.max
+    return if combined.nil?          # no contribution → leave the value (sticky)
+    return if issue.due_date == combined
+
+    Issue.where(id: issue_id).update_all(due_date: combined)
+    # An ancestor's derived due may depend on this issue's due — recompute upward.
+    recalc_due_date(issue.parent_id) if issue.parent_id
+  rescue StandardError => e
+    Rails.logger.error("ChecklistItem.recalc_due_date error: #{e.class}: #{e.message}")
+  end
+
   private
 
   # Notify the assignee (email + optional webhook) when an item is assigned to a

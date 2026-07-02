@@ -2,7 +2,7 @@
 
 A checklist plugin for Redmine issues — add ordered, checkable items to any issue, with progress tracking, sections, templates, per-item assignment, and mandatory-item enforcement. Open-source (GPL-3.0), dependency-light (no proprietary gems), built and tested for **Redmine 6.x** (Rails 7.2, Ruby 3.x).
 
-> **Status:** **v1.2.1** — stable. The interactive single-issue checklist, change history,
+> **Status:** **v1.3.0** — stable. The interactive single-issue checklist, change history,
 > done-ratio integration, activity feed, search, reusable **templates**, **mandatory-item
 > enforcement** (global **or per-project**), **per-item assignment** (assignee/due date),
 > the optional **issue-list "Checklist" column**, and **converting an item into a subtask**
@@ -33,10 +33,12 @@ Real tasks contain small steps too lightweight for their own issue. This plugin 
 - ✅ **Convert a checklist item into a subtask** — promotes an open task to a linked child issue via the prefilled new-issue form (or **one-click quick convert** on the parent's tracker); the item becomes a locked row whose done-state mirrors the subtask. Issue **% Done** combines checklist items and subtasks — *v1.1.0 / v1.2.0*
 - ✅ **Assignment notifications** — optional email + JSON webhook to the assignee when a checklist item is assigned — *v1.2.0*
 - ✅ **Checklist due dates surfaced** — a "next due" chip on the issue and an optional sortable **"Checklist due" column** for the issue list / queries — *v1.2.0*
+- ✅ **Find your checklist work with the filters you already use** — a checklist item assigned to you surfaces the issue in **"Assigned to me"** and the native **Assignee** filter (kill-switch to disable); plus a **"Checklist due" filter** and a **"Checklist assignees" column** — *v1.3.0*
+- ✅ **Checklist due dates drive the issue's due date** (like subtasks — the latest wins), so checklist deadlines appear **natively in Calendar, Gantt, reminders, and the due-date filter** (kill-switch to disable) — *v1.3.0*
 
 **Possible future work (see [roadmap](docs/planning/roadmap.md)):**
 
-- ⏳ Checklist **assignee** and **due-date** filters for the issue list / saved queries (so issues surface by who/when their checklist items are assigned) — see [research](docs/planning/feature-checklist-in-queries.md)
+- ⏳ Cross-project checklist report/dashboard; converting an item to a subtask on a *different* tracker
 
 See the [feature matrix](docs/product/feature-matrix.md) for full scope and priorities.
 
@@ -59,7 +61,7 @@ The plugin directory must be named `redmine_checklist`.
 
 ```bash
 cd /path/to/redmine/plugins
-tar xzf redmine_checklist-1.2.1.tar.gz   # extracts redmine_checklist/
+tar xzf redmine_checklist-1.3.0.tar.gz   # extracts redmine_checklist/
 cd /path/to/redmine
 bundle exec rake redmine:plugins:migrate RAILS_ENV=production NAME=redmine_checklist
 # restart Redmine
