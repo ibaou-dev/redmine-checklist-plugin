@@ -1,0 +1,37 @@
+<%#
+  Live-refresh EVERY issue-page element a checklist change can affect, so the user
+  never needs to reload after a checklist action:
+    * Redmine's core "% Done" field,
+    * the issue's own due date field (derived from checklist + subtasks),
+    * the checklist panel's "next due" chip.
+  Rendered from every checklist mutation .js.erb. Recalc uses update_all, so read
+  FRESH values from the DB here (a fresh Issue, not the possibly-stale @issue).
+%>
+<% fresh = Issue.find_by(id: @issue.id) %>
+<% if fresh %>
+(function() {
+  <% if ChecklistItem.affects_done_ratio? %>
+  // Core "% Done"
+  var doneCell = document.querySelector('.attribute.progress .value');
+  if (doneCell) {
+    doneCell.innerHTML = <%= raw progress_bar(fresh.done_ratio.to_i, legend: "#{fresh.done_ratio.to_i}%").to_json %>;
+  }
+  <% end %>
+
+  <% if ChecklistItem.combine_checklist_due? %>
+  // Issue due date field (derived from checklist + subtasks)
+  var dueCell = document.querySelector('.attribute.due-date .value');
+  if (dueCell) {
+    dueCell.innerHTML = <%= raw (issue_due_date_details(fresh) || '').to_s.to_json %>;
+  }
+  <% end %>
+
+  // "Next checklist due" chip in the panel header (adds OR clears it)
+  var chipWrap = document.getElementById('checklist-next-due-wrap');
+  if (chipWrap) {
+    var tmp = document.createElement('div');
+    tmp.innerHTML = <%= raw render('checklists/next_due_chip', issue: fresh).to_json %>;
+    chipWrap.replaceWith(tmp.firstElementChild);
+  }
+})();
+<% end %>

@@ -47,7 +47,7 @@ test('detail edits (assignee/due/mandatory) are recorded in History', async ({ p
   await row.locator('.checklist-expand').click();
   const panel = row.locator('.checklist-item-details');
   await expect(panel).toBeVisible();
-  await panel.locator('.checklist-detail-due').fill('2026-07-15');
+  await panel.locator('.checklist-detail-due').evaluate((el: HTMLInputElement) => { el.value = '2026-07-15'; });
   await panel.locator('.checklist-detail-mandatory').check();
   await panel.locator('.checklist-detail-save').click();
   await page.waitForTimeout(1200);

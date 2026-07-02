@@ -16,6 +16,20 @@ module RedmineChecklist
     !['0', 'false'].include?(Setting.plugin_redmine_checklist['include_checklist_assignee'].to_s)
   end
 
+  # The effective Redmine date format (Setting override, else the locale default)
+  # translated from strftime tokens to a jQuery UI datepicker `dateFormat`, so the
+  # checklist due-date field can display/edit in the user's locale (like every
+  # other date the plugin shows) while still submitting an ISO value. A module
+  # method (not a helper) so it is available in the issue-show hook render context.
+  def self.jquery_date_format
+    fmt = Setting.date_format.presence || ::I18n.t('date.formats.default', default: '%Y-%m-%d')
+    fmt = '%Y-%m-%d' unless fmt.is_a?(String)
+    { '%Y' => 'yy', '%y' => 'y', '%m' => 'mm', '%d' => 'dd', '%e' => 'd',
+      '%B' => 'MM', '%b' => 'M', '%A' => 'DD', '%a' => 'D', '%j' => 'oo' }
+      .each { |strf, jq| fmt = fmt.gsub(strf, jq) }
+    fmt
+  end
+
   # Completes an item -> subtask conversion after the child issue is saved.
   # Verifies the signed token, then (idempotently, with a parent-link sanity
   # check) stamps the conversion columns on the checklist item and journals it.

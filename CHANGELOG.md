@@ -25,8 +25,13 @@ then restart Redmine. No behavior is opt-in except via the kill-switch; the assi
 - The **Assignee column / group-by-assignee** still reflect the issue's own assignee (the column = who owns the issue); the new "Checklist assignees" column surfaces the per-item owners. The *filter* is what includes checklist assignees.
 - Not folded into core: the **due-date** filter is a separate "Checklist due" filter (not merged into Redmine's `due_date` filter) — checklist deadlines are surfaced without changing issue-scheduling semantics.
 
+### Fixed / polish
+- **All checklist dates now respect the Redmine (user/site) locale.** The due-date field in the item detail panel now displays and edits in the site's date format (backed by a hidden ISO value + jQuery UI datepicker) instead of the browser's locale, and the **History** tab renders due-date changes in the site format too (previously raw ISO). Every displayed date — meta line, "next due" chip, column, filter, History, and the edit field — is consistent.
+- **Icons use the SVG icon set** (no special-character glyphs): the "next due" clock, the converted-row indicator, the drag handle, the edit and completed-check icons are now Redmine sprite icons, matching the rest of the UI.
+- **Everything updates live — no page reloads.** After any checklist action, the issue's own **due date** field and the **"next checklist due"** chip now refresh in place (joining the % Done and progress bar), via a single `issue_sync` partial rendered by every checklist mutation.
+
 ### Tested
-Playwright e2e (real Chrome): new `phase11-queries` spec (assignee fold + kill-switch, assignees column, due filter). All operators + kill-switch also verified at the query level.
+Playwright e2e (real Chrome): new `phase11-queries` spec (assignee fold + kill-switch, assignees column, due filter) and `phase12-date-locale` (site-format due field, ISO submission, History in site format). All operators + kill-switch also verified at the query level.
 
 ## [1.2.1] — 2026-07-02
 

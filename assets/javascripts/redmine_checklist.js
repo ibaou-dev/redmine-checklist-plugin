@@ -148,6 +148,25 @@
     var detailDiv  = li.querySelector('.checklist-item-details');
     if (!expandBtn || !detailDiv) return;
 
+    // Due-date field: a site-locale text field enhanced with jQuery UI's
+    // datepicker that writes an ISO value to the hidden field actually submitted.
+    var dueDisplay = detailDiv.querySelector('.checklist-detail-due-display');
+    var dueHidden  = detailDiv.querySelector('.checklist-detail-due');
+    if (dueDisplay && dueHidden && window.jQuery && jQuery.fn && jQuery.fn.datepicker &&
+        !dueDisplay.dataset.dpInit) {
+      dueDisplay.dataset.dpInit = '1';
+      jQuery(dueDisplay).datepicker({
+        dateFormat:  dueDisplay.dataset.jqfmt || 'yy-mm-dd',
+        altField:    dueHidden,
+        altFormat:   'yy-mm-dd',
+        changeMonth: true,
+        changeYear:  true,
+        showButtonPanel: true
+      });
+      // Clearing the visible field clears the submitted ISO value.
+      jQuery(dueDisplay).on('change', function () { if (!this.value) { dueHidden.value = ''; } });
+    }
+
     // Toggle panel visibility; the chevron rotates via the `.expanded` class.
     function openPanel() {
       detailDiv.style.display = '';

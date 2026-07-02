@@ -5,7 +5,7 @@
       id="checklist-item-<%= item.id %>"
       data-id="<%= item.id %>">
     <% if can_manage %>
-      <span class="checklist-handle" aria-label="<%= l(:label_checklist_drag_to_reorder) %>">&#8942;</span>
+      <span class="checklist-handle" aria-label="<%= l(:label_checklist_drag_to_reorder) %>"><%= sprite_icon('reorder', l(:label_checklist_drag_to_reorder), icon_only: true) %></span>
     <% end %>
     <span class="checklist-section-label"><%= item.subject %></span>
     <% if can_manage %>
@@ -13,7 +13,7 @@
         <a href="#"
            class="checklist-edit"
            aria-label="<%= l(:label_checklist_edit_item) %>"
-           data-url="<%= issue_checklist_item_path(@issue, item) %>">&#9998;</a>
+           data-url="<%= issue_checklist_item_path(@issue, item) %>"><%= sprite_icon('edit', l(:label_checklist_edit_item), icon_only: true) %></a>
         <%= link_to sprite_icon('del', l(:button_delete), icon_only: true),
                     issue_checklist_item_path(@issue, item),
                     method: :delete,
@@ -29,10 +29,10 @@
   <li class="checklist-item checklist-converted <%= 'is-done' if item.effective_done? %>"
       id="checklist-item-<%= item.id %>"
       data-id="<%= item.id %>">
-    <span class="checklist-converted-icon" aria-hidden="true">&#8626;</span>
+    <span class="checklist-converted-icon"><%= sprite_icon('arrow-right', l(:button_convert_to_subtask), icon_only: true) %></span>
     <span class="checklist-item-text"><%= item.subject %></span>
     <span class="checklist-item-meta checklist-converted-meta">
-      <span class="checklist-converted-link">&rarr; <%= link_to_issue(item.converted_issue, subject: false) %></span>
+      <span class="checklist-converted-link"><%= link_to_issue(item.converted_issue, subject: false) %></span>
       <span class="checklist-converted-status"><%= item.converted_issue.status.name %></span>
     </span>
   </li>
@@ -42,7 +42,7 @@
       data-id="<%= item.id %>">
 
     <% if can_manage %>
-      <span class="checklist-handle" aria-label="<%= l(:label_checklist_drag_to_reorder) %>">&#8942;</span>
+      <span class="checklist-handle" aria-label="<%= l(:label_checklist_drag_to_reorder) %>"><%= sprite_icon('reorder', l(:label_checklist_drag_to_reorder), icon_only: true) %></span>
       <button type="button"
               class="checklist-expand"
               aria-expanded="false"
@@ -76,7 +76,7 @@
           <span class="checklist-completed-meta"
                 title="<%= l(:label_checklist_completed_by,
                               user: item.completed_by&.name,
-                              date: format_time(item.completed_at)) %>">&#10003;</span>
+                              date: format_time(item.completed_at)) %>"><%= sprite_icon('checked', l(:label_checklist_completed), icon_only: true) %></span>
         <% end %>
       </span>
     <% end %>
@@ -100,7 +100,7 @@
         <a href="#"
            class="checklist-edit"
            aria-label="<%= l(:label_checklist_edit_item) %>"
-           data-url="<%= issue_checklist_item_path(@issue, item) %>">&#9998;</a>
+           data-url="<%= issue_checklist_item_path(@issue, item) %>"><%= sprite_icon('edit', l(:label_checklist_edit_item), icon_only: true) %></a>
         <%= link_to sprite_icon('del', l(:button_delete), icon_only: true),
                     issue_checklist_item_path(@issue, item),
                     method: :delete,
@@ -126,9 +126,17 @@
 
         <label>
           <%= l(:field_due_date) %>
-          <input type="date"
+          <%# Site-locale text field (jQuery UI datepicker) + hidden ISO value.
+              The visible value uses format_date so it matches every other date the
+              plugin shows; the hidden field (read by the save JS) stays ISO. %>
+          <input type="text"
+                 class="checklist-detail-due-display"
+                 autocomplete="off"
+                 size="12"
+                 data-jqfmt="<%= RedmineChecklist.jquery_date_format %>"
+                 value="<%= item.due_date ? format_date(item.due_date) : '' %>">
+          <input type="hidden"
                  class="checklist-detail-due"
-                 name="checklist_item[due_date]"
                  value="<%= item.due_date %>">
         </label>
 

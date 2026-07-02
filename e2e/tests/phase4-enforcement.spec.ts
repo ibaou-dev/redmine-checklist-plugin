@@ -101,7 +101,8 @@ test('details: expand row sets mandatory, due date and assignee; row reflects th
   const panel = row.locator('.checklist-item-details');
   await expect(panel).toBeVisible({ timeout: 5000 });
 
-  await panel.locator('.checklist-detail-due').fill('2020-01-01'); // past → overdue
+  // The submitted due value is a hidden ISO field (datepicker-backed); set it directly.
+  await panel.locator('.checklist-detail-due').evaluate((el: HTMLInputElement) => { el.value = '2020-01-01'; }); // past → overdue
   await panel.locator('.checklist-detail-mandatory').check();
   // assignee select may be Prism-enhanced (native hidden); set value directly.
   const sel = panel.locator('.checklist-detail-assignee');

@@ -60,7 +60,7 @@ test('due propagation: setting a checklist item due date derives the issue due d
   await row.locator('.checklist-expand').click();
   const panel = row.locator('.checklist-item-details');
   await expect(panel).toBeVisible();
-  await panel.locator('.checklist-detail-due').fill(due);
+  await panel.locator('.checklist-detail-due').evaluate((el: HTMLInputElement, v: string) => { el.value = v; }, due);
   await panel.locator('.checklist-detail-save').click();
   await page.waitForTimeout(1200);
 
@@ -68,6 +68,39 @@ test('due propagation: setting a checklist item due date derives the issue due d
   expect(rubyOut(`print Issue.find(${ISSUE_ID}).due_date&.to_s`)).toBe(due);
 
   ruby(`Issue.find(${ISSUE_ID}).checklist_items.delete_all; Issue.find(${ISSUE_ID}).update_columns(due_date:nil)`);
+  await logout(page);
+});
+
+test('live sync: setting/clearing a checklist due updates the issue due field + next-due chip without reload', async ({ page }) => {
+  ruby(`Setting.plugin_redmine_checklist = Setting.plugin_redmine_checklist.merge('affect_done_ratio'=>'1','combine_checklist_due'=>'1','save_log'=>'1');
+        Setting.issue_done_ratio='issue_field';
+        i=Issue.find(${ISSUE_ID}); i.checklist_items.delete_all; Issue.where(parent_id:${ISSUE_ID}).destroy_all; i.update_columns(due_date:nil);
+        i.checklist_items.create!(subject:'Live', position:0)`);
+
+  await login(page, 'admin', 'Test1234!');
+  await page.goto(`/issues/${ISSUE_ID}`);
+
+  const chip = page.locator('#checklist-panel .checklist-next-due');
+  const dueCell = page.locator('.attribute.due-date .value');
+  await expect(chip).toHaveCount(0);
+
+  // Set the item's due date — chip AND the issue's own due field update live.
+  let row = page.locator('#checklist-items .checklist-item').first();
+  await row.locator('.checklist-expand').click();
+  await row.locator('.checklist-detail-due').evaluate((el: HTMLInputElement) => { el.value = '2026-08-20'; });
+  await row.locator('.checklist-detail-save').click();
+  await expect(chip).toHaveCount(1, { timeout: 7000 });
+  await expect(dueCell).toContainText('08/20/2026');
+
+  // Clear the item's due date — the chip disappears live (no reload).
+  row = page.locator('#checklist-items .checklist-item').first();
+  await row.locator('.checklist-expand').click();
+  await row.locator('.checklist-detail-due').evaluate((el: HTMLInputElement) => { el.value = ''; });
+  await row.locator('.checklist-detail-save').click();
+  await expect(chip).toHaveCount(0, { timeout: 7000 });
+
+  ruby(`Issue.find(${ISSUE_ID}).checklist_items.delete_all; Issue.find(${ISSUE_ID}).update_columns(due_date:nil);
+        Setting.plugin_redmine_checklist = Setting.plugin_redmine_checklist.merge('affect_done_ratio'=>'0')`);
   await logout(page);
 });
 

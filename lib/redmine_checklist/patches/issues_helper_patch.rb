@@ -105,7 +105,10 @@ module RedmineChecklist
             end
 
             diff[:due_changed].each do |change|
-              label = change[:to].present? ? l(:label_checklist_due_set, date: change[:to]) : l(:label_checklist_due_cleared)
+              # change[:to] is the snapshot's ISO string; render it in the user's
+              # locale via format_date (not the raw ISO).
+              formatted = change[:to].present? ? format_date(change[:to].to_date) : nil
+              label = formatted ? l(:label_checklist_due_set, date: formatted) : l(:label_checklist_due_cleared)
               strings << checklist_meta_change_string(change[:subject], label, no_html)
             end
 
